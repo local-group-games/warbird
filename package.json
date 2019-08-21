@@ -6,9 +6,9 @@
   "license": "MIT",
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "dev": "docker-compose -f docker-compose.dev.yml up",
+    "dev": "yarn dev:stop && docker-compose -f docker-compose.dev.yml up",
     "dev:stop": "docker-compose -f docker-compose.dev.yml down",
-    "dev:restart": "yarn dev:stop && docker-compose -f docker-compose.dev.yml build && yarn dev",
+    "dev:rebuild": "yarn dev:stop && docker-compose -f docker-compose.dev.yml build && yarn dev",
     "dev:client": "bash ./bin/dev_client.sh",
     "dev:server": "bash ./bin/dev_server.sh"
   },

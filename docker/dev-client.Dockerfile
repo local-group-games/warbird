@@ -19,6 +19,7 @@ ADD tsconfig.json ./tsconfig.json
 ADD bin ./bin
 
 # Add source code
+ADD packages/core ./packages/core
 ADD packages/client ./packages/client
 
 # Install dev and project dependencies

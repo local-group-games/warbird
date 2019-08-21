@@ -1,7 +1,6 @@
 import { Client, Room } from "colyseus";
+import { PhysicsState, PhysicsWorld } from "colyseus-test-core";
 import { Body, World } from "p2";
-import { PhysicsState } from "../physics/PhysicsState";
-import { PhysicsWorld } from "../physics/PhysicsWorld";
 
 export class MainRoom extends Room {
   private physics: PhysicsWorld;
@@ -16,6 +15,7 @@ export class MainRoom extends Room {
     this.physics = physics;
 
     this.setState(physics.state);
+
     this.setSimulationInterval((deltaTime: number) =>
       physics.update(deltaTime),
     );
@@ -29,7 +29,13 @@ export class MainRoom extends Room {
     );
   }
 
-  onMessage(client: Client, message: any) {}
+  onMessage(client: Client, message: any) {
+    if (message === "turn") {
+      this.physics.world.bodies.forEach(body => {
+        body.angularVelocity -= 0.1;
+      });
+    }
+  }
 
   onLeave(client: Client, consented: boolean) {}
 
