@@ -1,0 +1,26 @@
+version: "3.3"
+services:
+  server:
+    build:
+      context: .
+      dockerfile: ./docker/dev-server.Dockerfile
+    volumes:
+      - .:/app/
+      - /app/node_modules
+      - /app/packages/server/node_modules
+    environment:
+      PORT: 3001
+    ports:
+      - 3001:3001
+  client:
+    build:
+      context: .
+      dockerfile: ./docker/dev-client.Dockerfile
+    environment:
+      SERVER_URL: localhost:3001
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/app/
+      - /app/node_modules
+      - /app/packages/client/node_modules

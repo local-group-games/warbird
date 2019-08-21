@@ -1,0 +1,23 @@
+{
+  "name": "colyseus-test",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "bootstrap": "lerna bootstrap",
+    "dev": "docker-compose -f docker-compose.dev.yml up",
+    "dev:stop": "docker-compose -f docker-compose.dev.yml down",
+    "dev:restart": "yarn dev:stop && docker-compose -f docker-compose.dev.yml build && yarn dev",
+    "dev:client": "bash ./bin/dev_client.sh",
+    "dev:server": "bash ./bin/dev_server.sh"
+  },
+  "dependencies": {
+    "lerna": "^3.10.7",
+    "nodemon": "^1.19.1",
+    "typescript": "^3.5.3"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}

@@ -1,0 +1,39 @@
+# OSX
+#
+.DS_Store
+
+# log
+npm-debug.log
+lerna-debug.log
+
+# cache
+.jest
+
+# process
+.env
+.vscode
+
+# test
+coverage
+
+# dependencies
+node_modules
+
+# build
+build
+dist
+env-config.js
+
+# etc
+analytics.tgz
+
+packages/dock/stubs/*.js
+packages/core/src/helpers/*.js
+packages/core/src/middleware/*.js
+packages/core/src/types/model/**/*.js
+packages/core/src/types/*.js
+*.diff
+
+
+.idea/*
+patches
