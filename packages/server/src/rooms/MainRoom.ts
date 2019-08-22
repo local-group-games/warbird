@@ -3,26 +3,24 @@ import {
   GameMessage,
   GameMessageType,
   PhysicsDriver,
-  PhysicsState,
+  SystemState,
 } from "colyseus-test-core";
 import { Body, Box, World } from "p2";
 
-export class MainRoom extends Room {
+export class MainRoom extends Room<SystemState> {
   private physics: PhysicsDriver;
 
   onInit() {
-    const state = new PhysicsState();
+    const system = new SystemState();
     const world = new World({
       gravity: [0, 0],
     });
-    const physics = new PhysicsDriver(state, world);
+    const physics = new PhysicsDriver(system.physics, world);
 
     this.physics = physics;
 
-    this.setState(state);
-    this.setSimulationInterval((deltaTime: number) =>
-      physics.update(deltaTime),
-    );
+    this.setState(system);
+    this.setSimulationInterval(deltaTime => physics.update(deltaTime));
   }
 
   onJoin(client: Client) {
@@ -40,13 +38,13 @@ export class MainRoom extends Room {
     body.addShape(shape);
 
     this.physics.world.addBody(body);
-    this.clientEntities.set(client, body);
+    this.state.entityIdsByClientId[client.id] = body.id;
   }
 
-  private clientEntities = new Map<Client, Body>();
-
   onMessage(client: Client, message: GameMessage) {
-    const body = this.clientEntities.get(client);
+    const bodyId = this.state.entityIdsByClientId[client.id];
+    // @ts-ignore
+    const body = this.physics.world.getBodyById(bodyId);
     const [type, payload] = message;
 
     if (type === GameMessageType.PlayerCommand) {
@@ -70,9 +68,11 @@ export class MainRoom extends Room {
   }
 
   onLeave(client: Client) {
-    const body = this.clientEntities.get(client);
+    const bodyId = this.state.entityIdsByClientId[client.id];
+    // @ts-ignore
+    const body = this.physics.world.getBodyById(bodyId);
 
-    this.clientEntities.delete(client);
+    delete this.state.entityIdsByClientId[client.id];
     this.physics.world.removeBody(body);
   }
 

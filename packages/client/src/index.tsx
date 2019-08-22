@@ -1,14 +1,19 @@
-import { BodyState, command, PhysicsState } from "colyseus-test-core";
+import { BodyState, command, SystemState } from "colyseus-test-core";
 import { Client } from "colyseus.js";
 import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import { Canvas, useRender } from "react-three-fiber";
+import { Canvas, useRender, useThree, CanvasContext } from "react-three-fiber";
 import { Group, PCFSoftShadowMap, Vector3 } from "three";
 import { createInputListener } from "./input";
 
-// @ts-ignore
-const client = new Client(`ws://${window.APP_CONFIGURATION.SERVER_URL}`);
-const room = client.join<PhysicsState>("main");
+const client = new Client(
+  // @ts-ignore
+  `ws://${window.APP_CONFIGURATION.SERVER_URL.replace(
+    "localhost",
+    window.location.hostname,
+  )}`,
+);
+const room = client.join<SystemState>("main");
 const input = createInputListener({
   KeyW: "thrustForward",
   KeyA: "turnLeft",
@@ -18,10 +23,11 @@ const input = createInputListener({
   ShiftLeft: "afterburners",
 });
 
-setInterval(
-  () => room.hasJoined && room.send(command(input.command)),
-  (1 / 60) * 1000,
-);
+setInterval(() => {
+  if (room.hasJoined) {
+    room.send(command(input.command));
+  }
+}, (1 / 60) * 1000);
 
 function Plane() {
   return (
@@ -34,50 +40,69 @@ function Plane() {
 
 const cameraScale = new Vector3(0.05, 0.05, 0.05);
 
-function Game() {
-  const [boxes, setBoxes] = useState<any>([]);
+function Main() {
   const [bodies, setBodies] = useState<BodyState[]>([]);
+  const [playerBody, setPlayerBody] = useState<BodyState>();
+  const { camera } = useThree();
 
   useEffect(() => {
-    const { remove } = room.onStateChange.add((state: PhysicsState) => {
-      setBodies(Object.values(state.bodies));
-      // setBoxes(
-      //   Object.values(state.bodies).map((body: BodyState) => {
-      //     return <Player key={body.id} body={body} />;
-      //   }),
-      // );
+    const { remove } = room.onStateChange.add((state: SystemState) => {
+      setBodies(Object.values(state.physics.bodies));
+
+      if (client.id) {
+        const entityId = state.entityIdsByClientId[client.id];
+        const body: BodyState = state.physics.bodies[entityId];
+
+        setPlayerBody(body);
+      }
     });
 
     return remove;
   }, []);
-  const ships = bodies.map((body: BodyState) => (
-    <Player key={body.id} body={body} />
-  ));
 
-  console.log(
-    bodies.length
-      ? new Vector3(bodies[0].x, bodies[0].y, 10)
-      : new Vector3(0, 0, 10),
+  useRender(
+    () => {
+      if (!playerBody) {
+        return;
+      }
+      camera.position.set(
+        lerp(camera.position.x, playerBody.x, 0.2),
+        lerp(camera.position.y, playerBody.y, 0.2),
+        10,
+      );
+    },
+    false,
+    [bodies],
   );
 
+  const ships = bodies.map(body => <Ship key={body.id} body={body} />);
+
+  return (
+    <>
+      <ambientLight intensity={0.5} />
+      <Plane />
+      {ships}
+    </>
+  );
+}
+
+const defaultCameraOptions = {
+  scale: cameraScale,
+};
+
+const onCanvasCreated = ({ gl }: CanvasContext) => {
+  gl.shadowMap.enabled = true;
+  gl.shadowMap.type = PCFSoftShadowMap;
+};
+
+function Game() {
   return (
     <Canvas
-      onCreated={({ gl }) => {
-        gl.shadowMap.enabled = true;
-        gl.shadowMap.type = PCFSoftShadowMap;
-      }}
-      camera={{
-        position: bodies.length
-          ? new Vector3(bodies[0].x, bodies[0].y, 10)
-          : new Vector3(0, 0, 10),
-        scale: cameraScale,
-      }}
+      onCreated={onCanvasCreated}
+      camera={defaultCameraOptions}
       orthographic
     >
-      <orthographicCamera />
-      <Plane />
-      <ambientLight intensity={0.5} />
-      {ships}
+      <Main />
     </Canvas>
   );
 }
@@ -86,7 +111,7 @@ function lerp(a: number, b: number, n: number) {
   return (1 - n) * a + n * b;
 }
 
-function Player(props: { body: BodyState }) {
+function Ship(props: { body: BodyState }) {
   const ref = useRef<Group>();
 
   useRender(
