@@ -1,43 +1,80 @@
 import { Client, Room } from "colyseus";
-import { PhysicsState, PhysicsWorld } from "colyseus-test-core";
-import { Body, World } from "p2";
+import {
+  GameMessage,
+  GameMessageType,
+  PhysicsDriver,
+  PhysicsState,
+} from "colyseus-test-core";
+import { Body, Box, World } from "p2";
 
 export class MainRoom extends Room {
-  private physics: PhysicsWorld;
+  private physics: PhysicsDriver;
 
-  onInit(options: any) {
+  onInit() {
     const state = new PhysicsState();
     const world = new World({
-      gravity: [0, 5],
+      gravity: [0, 0],
     });
-    const physics = new PhysicsWorld(state, world);
+    const physics = new PhysicsDriver(state, world);
 
     this.physics = physics;
 
-    this.setState(physics.state);
-
+    this.setState(state);
     this.setSimulationInterval((deltaTime: number) =>
       physics.update(deltaTime),
     );
   }
 
-  onJoin(client: Client, options: any, auth: any) {
-    this.physics.addBody(
-      new Body({
-        position: [0, 0],
-      }),
-    );
+  onJoin(client: Client) {
+    const x = (Math.random() - 0.5) * 5;
+    const y = (Math.random() - 0.5) * 5;
+    const body = new Body({
+      mass: 1,
+      position: [x, y],
+    });
+    const shape = new Box({
+      width: 1,
+      height: 1,
+    });
+
+    body.addShape(shape);
+
+    this.physics.world.addBody(body);
+    this.clientEntities.set(client, body);
   }
 
-  onMessage(client: Client, message: any) {
-    if (message === "turn") {
-      this.physics.world.bodies.forEach(body => {
-        body.angularVelocity -= 0.1;
-      });
+  private clientEntities = new Map<Client, Body>();
+
+  onMessage(client: Client, message: GameMessage) {
+    const body = this.clientEntities.get(client);
+    const [type, payload] = message;
+
+    if (type === GameMessageType.PlayerCommand) {
+      if (payload.thrustForward || payload.thrustReverse) {
+        const thrust =
+          (Number(payload.thrustForward) - Number(payload.thrustReverse)) *
+          5 *
+          (payload.afterburners ? 2 : 1);
+
+        body.applyForceLocal([0, thrust]);
+      }
+
+      if (payload.turnLeft || payload.turnRight) {
+        const turn =
+          (Number(payload.turnLeft) - Number(payload.turnRight)) * 0.05;
+
+        body.angle += turn;
+        body.angularVelocity = 0;
+      }
     }
   }
 
-  onLeave(client: Client, consented: boolean) {}
+  onLeave(client: Client) {
+    const body = this.clientEntities.get(client);
+
+    this.clientEntities.delete(client);
+    this.physics.world.removeBody(body);
+  }
 
   onDispose() {
     this.physics.dispose();

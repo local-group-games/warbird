@@ -3,9 +3,10 @@ import { BodyState } from "./BodyState";
 import { PhysicsState } from "./PhysicsState";
 import { syncBody } from "./syncBody";
 
-export class PhysicsWorld {
-  readonly state: PhysicsState;
-  readonly world: World;
+export class PhysicsDriver {
+  private state: PhysicsState;
+
+  world: World;
 
   constructor(state: PhysicsState, world: World) {
     this.state = state;
@@ -16,22 +17,17 @@ export class PhysicsWorld {
 
   private onAddBody = ({ body }: { body: Body }) => {
     const data = new BodyState();
+    const id = String(body.id);
 
     syncBody(body, data);
-    this.state.bodies[String(body.id)] = data;
+    this.state.bodies[id] = data;
   };
 
   private onRemoveBody = ({ body }: { body: Body }) => {
-    delete this.state.bodies[String(body.id)];
+    const id = String(body.id);
+
+    delete this.state.bodies[id];
   };
-
-  addBody(body: Body) {
-    this.world.addBody(body);
-  }
-
-  removeBody(body: Body) {
-    this.world.removeBody(body);
-  }
 
   update(deltaTime: number) {
     this.world.step(1 / 60, deltaTime / 1000, 10);

@@ -45,6 +45,9 @@ export {
   MeshPhysicalMaterial,
 } from "three/src/materials/MeshPhysicalMaterial.js";
 export { MeshBasicMaterial } from "three/src/materials/MeshBasicMaterial.js";
+export {
+  MeshStandardMaterial,
+} from "three/src/materials/MeshStandardMaterial.js";
 export { LineDashedMaterial } from "three/src/materials/LineDashedMaterial.js";
 export { SpriteMaterial } from "three/src/materials/SpriteMaterial.js";
 export { LineBasicMaterial } from "three/src/materials/LineBasicMaterial.js";
