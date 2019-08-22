@@ -104,3 +104,4 @@ export {
 } from "three/src/core/InterleavedBufferAttribute.js";
 export { ShaderMaterial } from "three/src/materials/ShaderMaterial.js";
 export { WireframeGeometry } from "three/src/geometries/WireframeGeometry.js";
+export { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";

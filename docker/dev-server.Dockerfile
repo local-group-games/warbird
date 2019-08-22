@@ -22,6 +22,9 @@ ADD bin ./bin
 ADD packages/core ./packages/core
 ADD packages/server ./packages/server
 
+# Fix npm warning
+RUN npm config set scripts-prepend-node-path true
+
 # Install dev and project dependencies
 RUN yarn
 RUN yarn bootstrap

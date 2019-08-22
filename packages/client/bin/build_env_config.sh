@@ -1,7 +1,5 @@
 #!/bin/bash
 
-echo "SERVER_URL: $SERVER_URL"
-
 # Recreate config file
 rm -rf ./env-config.js
 touch ./env-config.js
