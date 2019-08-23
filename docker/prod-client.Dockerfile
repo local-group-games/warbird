@@ -26,8 +26,8 @@ ADD packages/client ./packages/client
 RUN npm config set scripts-prepend-node-path true
 
 # Install dev and project dependencies
-RUN yarn install --production
-RUN yarn bootstrap:production
+RUN yarn install
+RUN yarn bootstrap
 
 # Build
 RUN yarn build:client
@@ -49,5 +49,7 @@ COPY packages/client/bin/build_env_config.sh .
 # Add bash
 RUN apk add --no-cache bash
 RUN chmod +x ./build_env_config.sh
+RUN ls /usr/share/nginx/html
+RUN chmod -R 755 /usr/share/nginx/html/assets
 
 CMD ["/bin/bash", "-c", "/usr/share/nginx/html/build_env_config.sh && nginx -g \"daemon off;\""]
