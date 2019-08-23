@@ -4,7 +4,7 @@ import { useRender } from "react-three-fiber";
 import { Group, Math as M, Vector3 } from "three";
 import useModel from "../hooks/useModel";
 
-const shipMeshScale = new Vector3(0.1, 0.1, 0.1);
+const shipMeshScale = new Vector3(0.075, 0.075, 0.075);
 const shipMeshRotation = [0, 0, Math.PI];
 
 type ShipProps = { body: BodyState };
@@ -36,11 +36,13 @@ export function Ship(props: ShipProps) {
     <mesh
       key={geometry.uuid}
       geometry={geometry}
-      material={material}
+      // material={material}
       castShadow
       receiveShadow
       rotation={shipMeshRotation}
-    />
+    >
+      <meshStandardMaterial attach="material" lights flatShading={false} />
+    </mesh>
   ));
 
   return (

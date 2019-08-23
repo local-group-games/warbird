@@ -3,7 +3,7 @@ import { Client } from "colyseus.js";
 import React, { Suspense, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { Canvas, CanvasContext, useRender, useThree } from "react-three-fiber";
-import { Math as M, PCFSoftShadowMap, Vector3 } from "three";
+import { Math as M, PCFSoftShadowMap, Vector3, Euler } from "three";
 import { createInputListener } from "./input";
 import { Ship } from "./objects/Ship";
 
@@ -91,6 +91,7 @@ function Main() {
 
 const defaultCameraOptions = {
   scale: cameraScale,
+  rotation: new Euler(0.4, 0),
 };
 
 const onCanvasCreated = ({ gl }: CanvasContext) => {
