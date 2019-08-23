@@ -1,0 +1,28 @@
+version: "3.3"
+services:
+  server:
+    build:
+      context: .
+      dockerfile: ./docker/server.Dockerfile
+    image: gcr.io/osmium/osmium-server
+    environment:
+      PORT: 3001
+    ports:
+      - 3001:3001
+    networks:
+      - net_backend
+  client:
+    build:
+      context: .
+      dockerfile: ./docker/client.Dockerfile
+    image: gcr.io/osmium/osmium-client
+    environment:
+      SERVER_URL: localhost:3001
+    ports:
+      - 3000:3000
+    networks:
+      - net_backend
+    depends_on:
+      - server
+networks:
+  net_backend:

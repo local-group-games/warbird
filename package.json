@@ -6,16 +6,22 @@
   "license": "MIT",
   "scripts": {
     "bootstrap": "lerna bootstrap",
+    "bootstrap:production": "lerna bootstrap -- --production",
     "dev": "yarn dev:stop && docker-compose -f docker-compose.dev.yml up",
     "dev:stop": "docker-compose -f docker-compose.dev.yml down",
     "dev:rebuild": "yarn dev:stop && docker-compose -f docker-compose.dev.yml build && yarn dev",
     "dev:client": "bash ./bin/dev_client.sh",
-    "dev:server": "bash ./bin/dev_server.sh"
+    "dev:server": "bash ./bin/dev_server.sh",
+    "build:client": "bash ./bin/build_client.sh",
+    "build:server": "bash ./bin/build_server.sh",
+    "start:server": "yarn --cwd ./packages/server start"
   },
   "dependencies": {
     "lerna": "^3.10.7",
-    "nodemon": "^1.19.1",
     "typescript": "^3.5.3"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.1"
   },
   "workspaces": [
     "packages/*"
