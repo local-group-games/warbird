@@ -4,11 +4,13 @@ export interface KeyBindings {
   [keyCode: string]: keyof PlayerCommandPayload;
 }
 
-export interface Input {
-  command: PlayerCommandPayload;
-}
+type InputSubscriber = <K extends keyof PlayerCommandPayload>(
+  key: K,
+  value: PlayerCommandPayload[K],
+) => any;
 
-export function createInputListener(keyBindings: KeyBindings): Input {
+export function createInputListener(keyBindings: KeyBindings) {
+  const subscribers: InputSubscriber[] = [];
   const command: PlayerCommandPayload = {
     thrustForward: false,
     thrustReverse: false,
@@ -17,6 +19,15 @@ export function createInputListener(keyBindings: KeyBindings): Input {
     afterburners: false,
     fire: false,
   };
+
+  function update<K extends keyof PlayerCommandPayload>(
+    key: K,
+    value: PlayerCommandPayload[K],
+  ) {
+    for (const subscriber of subscribers) {
+      subscriber(key, value);
+    }
+  }
 
   function handleKeydown(e: KeyboardEvent) {
     if (e.repeat) {
@@ -31,7 +42,10 @@ export function createInputListener(keyBindings: KeyBindings): Input {
 
     e.preventDefault();
 
-    command[binding] = true;
+    if (!command[binding]) {
+      command[binding] = true;
+      update(binding, true);
+    }
   }
 
   function handleKeyup(e: KeyboardEvent) {
@@ -44,14 +58,15 @@ export function createInputListener(keyBindings: KeyBindings): Input {
     e.preventDefault();
 
     command[binding] = false;
+    update(binding, false);
   }
 
   window.addEventListener("keydown", handleKeydown);
   window.addEventListener("keyup", handleKeyup);
 
   return {
-    get command() {
-      return command;
+    subscribe: (subscriber: InputSubscriber) => {
+      subscribers.push(subscriber);
     },
   };
 }

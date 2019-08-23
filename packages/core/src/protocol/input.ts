@@ -13,13 +13,15 @@ export type PlayerCommandPayload = {
   fire: boolean;
 };
 
-export type PlayerCommand = Message<
-  GameMessageType.PlayerCommand,
-  PlayerCommandPayload
->;
+export type PlayerCommand<
+  T extends keyof PlayerCommandPayload = keyof PlayerCommandPayload
+> = Message<GameMessageType.PlayerCommand, [T, PlayerCommandPayload[T]]>;
 
-export function command(payload: PlayerCommandPayload): PlayerCommand {
-  return [GameMessageType.PlayerCommand, payload];
+export function command<K extends keyof PlayerCommandPayload>(
+  type: K,
+  value: PlayerCommandPayload[K],
+): PlayerCommand<K> {
+  return [GameMessageType.PlayerCommand, [type, value]];
 }
 
 export type GameMessage = PlayerCommand;

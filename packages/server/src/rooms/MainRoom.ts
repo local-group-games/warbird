@@ -4,11 +4,13 @@ import {
   GameMessageType,
   PhysicsDriver,
   SystemState,
+  PlayerCommandPayload,
 } from "colyseus-test-core";
 import { Body, Box, World } from "p2";
 
 export class MainRoom extends Room<SystemState> {
   private physics: PhysicsDriver;
+  private commandsByClient = new WeakMap<Client, PlayerCommandPayload>();
 
   onInit() {
     const system = new SystemState();
@@ -20,7 +22,7 @@ export class MainRoom extends Room<SystemState> {
     this.physics = physics;
 
     this.setState(system);
-    this.setSimulationInterval(deltaTime => physics.update(deltaTime));
+    this.setSimulationInterval(this.update);
   }
 
   onJoin(client: Client) {
@@ -39,31 +41,28 @@ export class MainRoom extends Room<SystemState> {
 
     this.physics.world.addBody(body);
     this.state.entityIdsByClientId[client.id] = body.id;
+    this.commandsByClient.set(client, {
+      thrustForward: false,
+      thrustReverse: false,
+      turnLeft: false,
+      turnRight: false,
+      afterburners: false,
+      fire: false,
+    });
   }
 
   onMessage(client: Client, message: GameMessage) {
     const bodyId = this.state.entityIdsByClientId[client.id];
+
     // @ts-ignore
     const body = this.physics.world.getBodyById(bodyId);
     const [type, payload] = message;
 
     if (type === GameMessageType.PlayerCommand) {
-      if (payload.thrustForward || payload.thrustReverse) {
-        const thrust =
-          (Number(payload.thrustForward) - Number(payload.thrustReverse)) *
-          5 *
-          (payload.afterburners ? 2 : 1);
+      const [key, value] = payload;
+      const command: PlayerCommandPayload = this.commandsByClient.get(client);
 
-        body.applyForceLocal([0, thrust]);
-      }
-
-      if (payload.turnLeft || payload.turnRight) {
-        const turn =
-          (Number(payload.turnLeft) - Number(payload.turnRight)) * 0.05;
-
-        body.angle += turn;
-        body.angularVelocity = 0;
-      }
+      command[key] = value;
     }
   }
 
@@ -73,8 +72,37 @@ export class MainRoom extends Room<SystemState> {
     const body = this.physics.world.getBodyById(bodyId);
 
     delete this.state.entityIdsByClientId[client.id];
+    this.commandsByClient.delete(client);
     this.physics.world.removeBody(body);
   }
+
+  update = (deltaTime: number) => {
+    this.physics.update(deltaTime);
+
+    for (const client of this.clients) {
+      const command = this.commandsByClient.get(client);
+      const bodyId = this.state.entityIdsByClientId[client.id];
+      // @ts-ignore
+      const body = this.physics.world.getBodyById(bodyId);
+
+      if (command.thrustForward || command.thrustReverse) {
+        const thrust =
+          (Number(command.thrustForward) - Number(command.thrustReverse)) *
+          5 *
+          (command.afterburners ? 2 : 1);
+
+        body.applyForceLocal([0, thrust]);
+      }
+
+      if (command.turnLeft || command.turnRight) {
+        const turn =
+          (Number(command.turnLeft) - Number(command.turnRight)) * 0.05;
+
+        body.angle += turn;
+        body.angularVelocity = 0;
+      }
+    }
+  };
 
   onDispose() {
     this.physics.dispose();

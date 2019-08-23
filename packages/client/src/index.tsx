@@ -1,23 +1,14 @@
 import { BodyState, command, SystemState } from "colyseus-test-core";
 import { Client } from "colyseus.js";
-import React, { Suspense, useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { Canvas, CanvasContext, useRender, useThree } from "react-three-fiber";
-import {
-  Geometry,
-  Group,
-  PCFSoftShadowMap,
-  SpotLight,
-  Texture,
-  Vector3,
-  Material,
-} from "three";
-import useModel from "./hooks/useModel";
+import { Math as M, PCFSoftShadowMap, Vector3 } from "three";
 import { createInputListener } from "./input";
+import { Ship } from "./objects/Ship";
 
 const client = new Client(
-  // @ts-ignore
-  `ws://${window.APP_CONFIGURATION.SERVER_URL.replace(
+  `ws://${(window as any).APP_CONFIGURATION.SERVER_URL.replace(
     "localhost",
     window.location.hostname,
   )}`,
@@ -32,17 +23,13 @@ const input = createInputListener({
   ShiftLeft: "afterburners",
 });
 
-setInterval(() => {
-  if (room.hasJoined) {
-    room.send(command(input.command));
-  }
-}, (1 / 60) * 1000);
+input.subscribe((key, value) => room.send(command(key, value)));
 
 function Plane() {
   return (
     <mesh receiveShadow>
       <planeGeometry attach="geometry" args={[1000, 1000]} />
-      <meshPhongMaterial attach="material" color="#000" />
+      <meshPhongMaterial attach="material" color="#111" />
     </mesh>
   );
 }
@@ -75,11 +62,11 @@ function Main() {
         return;
       }
 
-      const x = lerp(camera.position.x, playerBody.x, 0.2);
-      const y = lerp(camera.position.y, playerBody.y, 0.2);
-      const z = 10;
-
-      camera.position.set(x, y, z);
+      camera.position.set(
+        M.lerp(camera.position.x, playerBody.x, 0.2),
+        M.lerp(camera.position.y, playerBody.y, 0.2),
+        10,
+      );
     },
     false,
     [bodies],
@@ -120,59 +107,6 @@ function Game() {
     >
       <Main />
     </Canvas>
-  );
-}
-
-function lerp(a: number, b: number, n: number) {
-  return (1 - n) * a + n * b;
-}
-
-const material = {
-  transparent: true,
-  roughness: 0.8,
-  fog: true,
-  shininess: 0,
-  flatShading: false,
-};
-
-function Ship(props: { body: BodyState }) {
-  const ref = useRef<Group>();
-  const [geometries] = useModel("/assets/scorpio/scene.gltf");
-
-  useRender(
-    () => {
-      const { current } = ref;
-
-      if (!current) {
-        return;
-      }
-
-      const angle = lerp(current.rotation.z, props.body.angle, 0.2);
-      const x = lerp(current.position.x, props.body.x, 0.2);
-      const y = lerp(current.position.y, props.body.y, 0.2);
-
-      current.rotation.set(0, 0, angle);
-      current.position.set(x, y, 0);
-    },
-    false,
-    [props.body],
-  );
-
-  return (
-    <group ref={ref} scale={new Vector3(0.1, 0.1, 0.1)}>
-      {geometries.map(({ geometry, material }) => {
-        return (
-          <mesh
-            key={geometry.uuid}
-            geometry={geometry}
-            material={material}
-            castShadow
-            receiveShadow
-            rotation={[0, 0, Math.PI]}
-          />
-        );
-      })}
-    </group>
   );
 }
 

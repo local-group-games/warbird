@@ -1,4 +1,5 @@
 import { MapSchema, Schema, type } from "@colyseus/schema";
+import { PlayerCommandPayload } from "../protocol/input";
 import { PhysicsState } from "./physics";
 
 export class SystemState extends Schema {
