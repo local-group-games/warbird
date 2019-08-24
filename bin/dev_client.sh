@@ -1,8 +1,6 @@
 #!/bin/bash
 
-lerna run build \
-  --scope=colyseus-test-client \
-  --include-filtered-dependencies
+lerna run build --scope=colyseus-test-core
 
 lerna run start \
   --scope=colyseus-test-client \

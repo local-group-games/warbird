@@ -105,6 +105,7 @@ function Game() {
       onCreated={onCanvasCreated}
       camera={defaultCameraOptions}
       orthographic
+      pixelRatio={window.devicePixelRatio}
       // style={{ backgroundColor: "#111" }}
     >
       <Main />
