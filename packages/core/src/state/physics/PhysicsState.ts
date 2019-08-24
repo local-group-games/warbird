@@ -1,7 +1,7 @@
 import { MapSchema, Schema, type } from "@colyseus/schema";
-import { BodyState } from "./BodyState";
+import { Body } from "../model/Body";
 
 export class PhysicsState extends Schema {
-  @type({ map: BodyState })
-  bodies = new MapSchema<BodyState>();
+  @type({ map: Body })
+  bodies = new MapSchema<Body>();
 }

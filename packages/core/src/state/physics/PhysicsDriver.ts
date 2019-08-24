@@ -1,51 +1,79 @@
-import { Body, World } from "p2";
-import { BodyState } from "./BodyState";
-import { PhysicsState } from "./PhysicsState";
-import { syncBody } from "./syncBody";
+import { ArraySchema } from "@colyseus/schema";
+import { ChangeTree } from "@colyseus/schema/lib/ChangeTree";
+import { Body as P2Body, Box, World } from "p2";
+import { Body } from "../model/Body";
+import { syncBodyToSchema, syncSchemaToBody } from "./syncBody";
 
 export class PhysicsDriver {
-  private state: PhysicsState;
+  private state: ArraySchema<Body>;
+  private world: World;
+  private bodiesBySchema = new Map<Body, P2Body>();
 
-  world: World;
-
-  constructor(state: PhysicsState, world: World) {
+  constructor(state: ArraySchema<Body>, world: World) {
     this.state = state;
     this.world = world;
-    this.world.on("addBody", this.onAddBody);
-    this.world.on("removeBody", this.onRemoveBody);
   }
 
-  private onAddBody = ({ body }: { body: Body }) => {
-    const data = new BodyState();
-    const id = String(body.id);
-
-    syncBody(body, data);
-    this.state.bodies[id] = data;
-  };
-
-  private onRemoveBody = ({ body }: { body: Body }) => {
-    const id = String(body.id);
-
-    delete this.state.bodies[id];
-  };
-
   update(deltaTime: number) {
-    this.world.step(1 / 60, deltaTime / 1000, 10);
+    const changes = (this.state as any).$changes as ChangeTree;
 
-    for (const id in this.state.bodies) {
-      // @ts-ignore
-      const body = this.world.getBodyById(Number(id));
+    for (const index of changes.allChanges) {
+      const schema: Body = this.state[index];
+      let body = this.bodiesBySchema.get(schema);
 
-      if (body) {
-        const data: BodyState = this.state.bodies[id];
+      if (!schema) {
+        this.bodiesBySchema.delete(schema);
 
-        syncBody(body, data);
+        if (body) {
+          this.world.removeBody(body);
+        } else {
+          console.warn(`Schema removed without body.`);
+        }
+
+        return;
       }
+
+      if (!body) {
+        const shape = new Box({
+          width: 1,
+          height: 1,
+        });
+
+        body = new P2Body({
+          position: [schema.x, schema.y],
+          mass: schema.mass,
+        });
+
+        body.addShape(shape);
+
+        this.world.addBody(body);
+        this.bodiesBySchema.set(schema, body);
+
+        return;
+      }
+
+      syncSchemaToBody(schema, body);
+
+      this.world.step(1 / 60, deltaTime / 1000, 10);
+
+      syncBodyToSchema(body, schema);
     }
   }
 
-  dispose() {
-    this.world.off("addBody", this.onAddBody);
-    this.world.off("removeBody", this.onRemoveBody);
+  applyForceLocal(
+    schema: Body,
+    force: [number, number],
+    point?: [number, number],
+  ) {
+    const body = this.bodiesBySchema.get(schema);
+
+    if (!body) {
+      console.warn(`Attempted to apply force to unregistered body.`);
+      return;
+    }
+
+    body.applyForceLocal(force, point);
   }
+
+  dispose() {}
 }

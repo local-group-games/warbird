@@ -1,19 +1,19 @@
-import { BodyState, command, SystemState, Tile } from "colyseus-test-core";
-import { Client } from "colyseus.js";
-import React, { Suspense, useEffect, useState } from "react";
+import {
+  Body,
+  command,
+  SystemState,
+  Tile,
+  Ship,
+  Entity,
+} from "colyseus-test-core";
+import { Client, Room } from "colyseus.js";
+import React, { Suspense, useEffect, useState, useMemo } from "react";
 import ReactDOM from "react-dom";
 import { Canvas, CanvasContext, useRender, useThree } from "react-three-fiber";
-import { Math as M, PCFSoftShadowMap, Vector3, Euler } from "three";
+import { Euler, Math as M, PCFSoftShadowMap, Vector2, Vector3 } from "three";
 import { createInputListener } from "./input";
-import { Ship } from "./objects/Ship";
+import { Ship as ShipComponent } from "./objects/Ship";
 
-const client = new Client(
-  `ws://${(window as any).APP_CONFIGURATION.SERVER_URL.replace(
-    "localhost",
-    window.location.hostname,
-  )}`,
-);
-const room = client.join<SystemState>("main");
 const input = createInputListener({
   KeyW: "thrustForward",
   KeyA: "turnLeft",
@@ -23,38 +23,69 @@ const input = createInputListener({
   ShiftLeft: "afterburners",
 });
 
-input.subscribe((key, value) => room.send(command(key, value)));
+async function main() {
+  const client = new Client(
+    `ws://${(window as any).APP_CONFIGURATION.SERVER_URL.replace(
+      "localhost",
+      window.location.hostname,
+    )}`,
+  );
+  const room = await client.joinOrCreate<SystemState>("main");
 
-function Wall(props: { tile: Tile }) {
+  input.subscribe((key, value) => room.send(command(key, value)));
+
+  function Game() {
+    return (
+      <Canvas
+        onCreated={onCanvasCreated}
+        camera={defaultCameraOptions}
+        pixelRatio={window.devicePixelRatio}
+        style={{ backgroundColor: "#111" }}
+        orthographic
+      >
+        <Main room={room} client={client} />
+      </Canvas>
+    );
+  }
+
+  ReactDOM.render(<Game />, document.getElementById("root"));
+}
+
+function TileComponent(props: { tile: Tile }) {
+  const { x, y } = props.tile;
+  const position = useMemo(() => new Vector3(x, y, 0), [x, y]);
+
   return (
-    <mesh>
-      <boxGeometry attach="geometry" />
+    <mesh position={position} castShadow receiveShadow>
+      <boxGeometry attach="geometry" args={[1, 1, 1]} />
       <meshStandardMaterial attach="material" />
     </mesh>
   );
 }
 
-function Main() {
-  const [bodies, setBodies] = useState<BodyState[]>([]);
-  const [tiles, setTiles] = useState<Tile[]>([]);
-  const [playerBody, setPlayerBody] = useState<BodyState>();
+const isShip = (entity: Entity): entity is Ship => entity.type === "ship";
+const isTile = (entity: Entity): entity is Tile => entity.type === "tile";
+
+function Main(props: { room: Room; client: Client }) {
+  const { client, room } = props;
+  const [entities, setEntities] = useState<Entity[]>([]);
+  const [playerBody, setPlayerBody] = useState<Body>();
   const { camera } = useThree();
 
   useEffect(() => {
-    const { remove } = room.onStateChange.add((state: SystemState) => {
-      setBodies(Object.values(state.physics.bodies));
-      setTiles(state.tiles);
+    const listener = (state: SystemState) => {
+      setEntities(state.entities);
 
-      if (client.id) {
-        const entityId = state.entityIdsByClientId[client.id];
-        const body: BodyState = state.physics.bodies[entityId];
+      const entityId = state.entityIdsByClientSessionId[room.sessionId];
+      const body = state.entities.find(entity => entity.id === entityId);
 
-        setPlayerBody(body);
-      }
-    });
+      setPlayerBody(body);
+    };
 
-    return remove;
-  }, []);
+    room.onStateChange(listener);
+
+    return () => room.onStateChange.remove(listener);
+  }, [client, room]);
 
   useRender(
     () => {
@@ -69,30 +100,35 @@ function Main() {
       );
     },
     false,
-    [bodies],
+    [entities],
   );
 
-  const ships = bodies.map(body => <Ship key={body.id} body={body} />);
-  const walls = tiles.map(tile => <Wall tile={tile} />);
+  const ships = entities.filter(isShip);
+  const tiles = entities.filter(isTile);
 
   return (
     <Suspense fallback={null}>
       <directionalLight
-        castShadow
-        intensity={0.8}
+        intensity={0.3}
+        position={[-50, -175, 100]}
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
-      <ambientLight intensity={0.8} />
-      {ships}
-      {walls}
+      <ambientLight intensity={0.3} />
+      {ships.map(body => (
+        <ShipComponent key={body.id} body={body} />
+      ))}
+      {tiles.map(tile => (
+        <TileComponent key={tile.id} tile={tile} />
+      ))}
     </Suspense>
   );
 }
 
 const defaultCameraOptions = {
-  zoom: 25,
-  rotation: new Euler(0.5, 0),
+  rotation: new Euler(0.15, 0.1, 0),
+  position: new Vector3(0, 0, 10),
+  zoom: 30,
 };
 
 const onCanvasCreated = ({ gl }: CanvasContext) => {
@@ -100,18 +136,4 @@ const onCanvasCreated = ({ gl }: CanvasContext) => {
   gl.shadowMap.type = PCFSoftShadowMap;
 };
 
-function Game() {
-  return (
-    <Canvas
-      onCreated={onCanvasCreated}
-      camera={defaultCameraOptions}
-      orthographic
-      pixelRatio={window.devicePixelRatio}
-      style={{ backgroundColor: "#111" }}
-    >
-      <Main />
-    </Canvas>
-  );
-}
-
-ReactDOM.render(<Game />, document.getElementById("root"));
+main();

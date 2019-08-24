@@ -1,13 +1,13 @@
-import { BodyState } from "colyseus-test-core";
+import { Body } from "colyseus-test-core";
 import React, { useRef } from "react";
 import { useRender } from "react-three-fiber";
 import { Group, Math as M, Vector3 } from "three";
 import useModel from "../hooks/useModel";
 
-const shipMeshScale = new Vector3(0.35, 0.35, 0.35);
+const shipMeshScale = new Vector3(0.2, 0.2, 0.2);
 const shipMeshRotation = [0, 0, Math.PI / 2];
 
-type ShipProps = { body: BodyState };
+type ShipProps = { body: Body };
 
 export function Ship(props: ShipProps) {
   const ref = useRef<Group>();

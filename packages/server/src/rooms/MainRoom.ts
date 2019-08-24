@@ -1,63 +1,55 @@
 import { Client, Room } from "colyseus";
 import {
+  Body,
   GameMessage,
   GameMessageType,
   PhysicsDriver,
-  SystemState,
   PlayerCommandPayload,
+  SystemState,
+  Ship,
   Tile,
 } from "colyseus-test-core";
-import { Body, Box, World } from "p2";
+import { World } from "p2";
+
+const tiles = [
+  { x: 5, y: 5 },
+  { x: 5, y: 6 },
+  { x: 6, y: 6 },
+  { x: 7, y: 6 },
+  { x: 8, y: 6 },
+  { x: 9, y: 6 },
+  { x: 9, y: 5 },
+];
 
 export class MainRoom extends Room<SystemState> {
   private physics: PhysicsDriver;
   private commandsByClient = new WeakMap<Client, PlayerCommandPayload>();
 
-  onInit() {
+  onCreate() {
     const system = new SystemState();
     const world = new World({
       gravity: [0, 0],
     });
-    const physics = new PhysicsDriver(system.physics, world);
-
-    system.physics.bodies.onChange = console.log;
+    const physics = new PhysicsDriver(system.entities, world);
 
     this.physics = physics;
 
-    const t = new Tile();
-
-    t.x = 2;
-    t.y = 2;
-
-    system.tiles.push(t);
-
-    physics.world.addBody(
-      new Body({
-        position: [2, 2],
-        mass: 0,
-      }),
-    );
+    for (const tile of tiles) {
+      system.entities.push(new Tile({ id: Math.random().toString(), ...tile }));
+    }
 
     this.setState(system);
     this.setSimulationInterval(this.update);
   }
 
   onJoin(client: Client) {
+    const id = client.sessionId;
     const x = (Math.random() - 0.5) * 5;
     const y = (Math.random() - 0.5) * 5;
-    const body = new Body({
-      mass: 1,
-      position: [x, y],
-    });
-    const shape = new Box({
-      width: 1,
-      height: 1,
-    });
+    const body = new Ship({ id, x, y });
 
-    body.addShape(shape);
-
-    this.physics.world.addBody(body);
-    this.state.entityIdsByClientId[client.id] = body.id;
+    this.state.entities.push(body);
+    this.state.entityIdsByClientSessionId[client.sessionId] = body.id;
     this.commandsByClient.set(client, {
       thrustForward: false,
       thrustReverse: false,
@@ -69,10 +61,6 @@ export class MainRoom extends Room<SystemState> {
   }
 
   onMessage(client: Client, message: GameMessage) {
-    const bodyId = this.state.entityIdsByClientId[client.id];
-
-    // @ts-ignore
-    const body = this.physics.world.getBodyById(bodyId);
     const [type, payload] = message;
 
     if (type === GameMessageType.PlayerCommand) {
@@ -84,23 +72,25 @@ export class MainRoom extends Room<SystemState> {
   }
 
   onLeave(client: Client) {
-    const bodyId = this.state.entityIdsByClientId[client.id];
-    // @ts-ignore
-    const body = this.physics.world.getBodyById(bodyId);
+    const entityId = this.state.entityIdsByClientSessionId[client.sessionId];
+    const entityIndex = this.state.entities.findIndex(
+      entity => entity.id === entityId,
+    );
 
-    delete this.state.entityIdsByClientId[client.id];
+    this.state.entities.splice(entityIndex, 1);
+
+    delete this.state.entityIdsByClientSessionId[client.sessionId];
+
     this.commandsByClient.delete(client);
-    this.physics.world.removeBody(body);
   }
 
   update = (deltaTime: number) => {
-    this.physics.update(deltaTime);
-
     for (const client of this.clients) {
       const command = this.commandsByClient.get(client);
-      const bodyId = this.state.entityIdsByClientId[client.id];
-      // @ts-ignore
-      const body = this.physics.world.getBodyById(bodyId);
+      const entityId = this.state.entityIdsByClientSessionId[client.sessionId];
+      const body: Body = this.state.entities.find(
+        entity => entity.id === entityId,
+      );
 
       if (command.thrustForward || command.thrustReverse) {
         const thrust =
@@ -108,7 +98,7 @@ export class MainRoom extends Room<SystemState> {
           5 *
           (command.afterburners ? 2 : 1);
 
-        body.applyForceLocal([0, thrust]);
+        this.physics.applyForceLocal(body, [0, thrust]);
       }
 
       if (command.turnLeft || command.turnRight) {
@@ -119,6 +109,8 @@ export class MainRoom extends Room<SystemState> {
         body.angularVelocity = 0;
       }
     }
+
+    this.physics.update(deltaTime);
   };
 
   onDispose() {
