@@ -1,4 +1,4 @@
-import { BodyState, command, SystemState } from "colyseus-test-core";
+import { BodyState, command, SystemState, Tile } from "colyseus-test-core";
 import { Client } from "colyseus.js";
 import React, { Suspense, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
@@ -25,25 +25,25 @@ const input = createInputListener({
 
 input.subscribe((key, value) => room.send(command(key, value)));
 
-const planeSize = [1000, 1000] as [number, number];
-
-function Plane() {
+function Wall(props: { tile: Tile }) {
   return (
-    <mesh receiveShadow>
-      <planeGeometry attach="geometry" args={planeSize} />
-      <meshPhongMaterial attach="material" color="#171717" />
+    <mesh>
+      <boxGeometry attach="geometry" />
+      <meshStandardMaterial attach="material" />
     </mesh>
   );
 }
 
 function Main() {
   const [bodies, setBodies] = useState<BodyState[]>([]);
+  const [tiles, setTiles] = useState<Tile[]>([]);
   const [playerBody, setPlayerBody] = useState<BodyState>();
   const { camera } = useThree();
 
   useEffect(() => {
     const { remove } = room.onStateChange.add((state: SystemState) => {
       setBodies(Object.values(state.physics.bodies));
+      setTiles(state.tiles);
 
       if (client.id) {
         const entityId = state.entityIdsByClientId[client.id];
@@ -73,6 +73,7 @@ function Main() {
   );
 
   const ships = bodies.map(body => <Ship key={body.id} body={body} />);
+  const walls = tiles.map(tile => <Wall tile={tile} />);
 
   return (
     <Suspense fallback={null}>
@@ -83,8 +84,8 @@ function Main() {
         shadow-mapSize-height={2048}
       />
       <ambientLight intensity={0.8} />
-      {/* <Plane /> */}
       {ships}
+      {walls}
     </Suspense>
   );
 }
@@ -106,7 +107,7 @@ function Game() {
       camera={defaultCameraOptions}
       orthographic
       pixelRatio={window.devicePixelRatio}
-      // style={{ backgroundColor: "#111" }}
+      style={{ backgroundColor: "#111" }}
     >
       <Main />
     </Canvas>

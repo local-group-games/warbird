@@ -5,6 +5,7 @@ import {
   PhysicsDriver,
   SystemState,
   PlayerCommandPayload,
+  Tile,
 } from "colyseus-test-core";
 import { Body, Box, World } from "p2";
 
@@ -19,7 +20,23 @@ export class MainRoom extends Room<SystemState> {
     });
     const physics = new PhysicsDriver(system.physics, world);
 
+    system.physics.bodies.onChange = console.log;
+
     this.physics = physics;
+
+    const t = new Tile();
+
+    t.x = 2;
+    t.y = 2;
+
+    system.tiles.push(t);
+
+    physics.world.addBody(
+      new Body({
+        position: [2, 2],
+        mass: 0,
+      }),
+    );
 
     this.setState(system);
     this.setSimulationInterval(this.update);
