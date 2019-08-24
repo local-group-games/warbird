@@ -25,16 +25,16 @@ const input = createInputListener({
 
 input.subscribe((key, value) => room.send(command(key, value)));
 
+const planeSize = [1000, 1000] as [number, number];
+
 function Plane() {
   return (
     <mesh receiveShadow>
-      <planeGeometry attach="geometry" args={[1000, 1000]} />
-      <meshPhongMaterial attach="material" color="#111" />
+      <planeGeometry attach="geometry" args={planeSize} />
+      <meshPhongMaterial attach="material" color="#171717" />
     </mesh>
   );
 }
-
-const cameraScale = new Vector3(0.03, 0.03, 0.03);
 
 function Main() {
   const [bodies, setBodies] = useState<BodyState[]>([]);
@@ -64,7 +64,7 @@ function Main() {
 
       camera.position.set(
         M.lerp(camera.position.x, playerBody.x, 0.2),
-        M.lerp(camera.position.y, playerBody.y, 0.2),
+        M.lerp(camera.position.y, playerBody.y, 0.2) - 1,
         10,
       );
     },
@@ -78,20 +78,20 @@ function Main() {
     <Suspense fallback={null}>
       <directionalLight
         castShadow
-        intensity={0.6}
+        intensity={0.8}
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
-      <ambientLight intensity={0.5} />
-      <Plane />
+      <ambientLight intensity={0.8} />
+      {/* <Plane /> */}
       {ships}
     </Suspense>
   );
 }
 
 const defaultCameraOptions = {
-  scale: cameraScale,
-  rotation: new Euler(0.4, 0),
+  zoom: 25,
+  rotation: new Euler(0.5, 0),
 };
 
 const onCanvasCreated = ({ gl }: CanvasContext) => {
@@ -105,6 +105,7 @@ function Game() {
       onCreated={onCanvasCreated}
       camera={defaultCameraOptions}
       orthographic
+      // style={{ backgroundColor: "#111" }}
     >
       <Main />
     </Canvas>

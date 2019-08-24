@@ -4,14 +4,14 @@ import { useRender } from "react-three-fiber";
 import { Group, Math as M, Vector3 } from "three";
 import useModel from "../hooks/useModel";
 
-const shipMeshScale = new Vector3(0.075, 0.075, 0.075);
-const shipMeshRotation = [0, 0, Math.PI];
+const shipMeshScale = new Vector3(0.35, 0.35, 0.35);
+const shipMeshRotation = [0, 0, Math.PI / 2];
 
 type ShipProps = { body: BodyState };
 
 export function Ship(props: ShipProps) {
   const ref = useRef<Group>();
-  const [geometries] = useModel("/assets/scorpio/scene.gltf");
+  const [geometries] = useModel("/assets/ship/scene.gltf");
 
   useRender(
     () => {
@@ -36,13 +36,11 @@ export function Ship(props: ShipProps) {
     <mesh
       key={geometry.uuid}
       geometry={geometry}
-      // material={material}
+      material={material}
       castShadow
       receiveShadow
       rotation={shipMeshRotation}
-    >
-      <meshStandardMaterial attach="material" lights flatShading={false} />
-    </mesh>
+    />
   ));
 
   return (

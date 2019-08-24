@@ -3,50 +3,50 @@
     {
       "bufferView": 2,
       "componentType": 5126,
-      "count": 181,
+      "count": 722,
       "max": [
-        8.07684326171875,
-        7.5294151306152344,
-        13.597742080688477
+        6.3415727615356445,
+        2.5269155502319336,
+        0.34457513689994812
       ],
       "min": [
-        -8.07684326171875,
-        -15.491216659545898,
-        -0.17952242493629456
+        -2.0937070846557617,
+        -2.5269155502319336,
+        -1.4351204633712769
       ],
       "type": "VEC3"
     },
     {
       "bufferView": 2,
-      "byteOffset": 2172,
+      "byteOffset": 8664,
       "componentType": 5126,
-      "count": 181,
+      "count": 722,
       "max": [
-        0.99787282943725586,
-        0.92674654722213745,
-        0.99589824676513672
+        1,
+        0.99802100658416748,
+        0.99671894311904907
       ],
       "min": [
-        -0.99787282943725586,
-        -0.9996829628944397,
-        -1
+        -0.99080729484558105,
+        -0.99802100658416748,
+        -0.99671894311904907
       ],
       "type": "VEC3"
     },
     {
       "bufferView": 3,
       "componentType": 5126,
-      "count": 181,
+      "count": 722,
       "max": [
         1,
-        0.99256563186645508,
-        0.99133753776550293,
+        0.99684268236160278,
+        0.99031496047973633,
         1
       ],
       "min": [
-        -1,
-        -0.99520260095596313,
-        -0.99133753776550293,
+        -0.98841220140457153,
+        -0.99684268236160278,
+        -0.99184322357177734,
         -1
       ],
       "type": "VEC4"
@@ -54,23 +54,23 @@
     {
       "bufferView": 1,
       "componentType": 5126,
-      "count": 181,
+      "count": 722,
       "max": [
-        0.875,
-        1
+        0.98607921600341797,
+        0.64380156993865967
       ],
       "min": [
-        0.015625,
-        0.0546875
+        0.51672482490539551,
+        0.080033987760543823
       ],
       "type": "VEC2"
     },
     {
       "bufferView": 0,
       "componentType": 5125,
-      "count": 270,
+      "count": 1158,
       "max": [
-        180
+        721
       ],
       "min": [
         0
@@ -80,42 +80,42 @@
   ],
   "asset": {
     "extras": {
-      "author": "Clément Dussol (https://sketchfab.com/faktori)",
+      "author": "wjs991 (https://sketchfab.com/wjs991)",
       "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
-      "source": "https://sketchfab.com/models/c1c2cec3e95c429c96a9e59b9b84d4fc",
-      "title": "Scorpio"
+      "source": "https://sketchfab.com/3d-models/lowpoly-space-concept-0031b5c67d0a4fa4bd4d50d3660e3585",
+      "title": "lowpoly space concept"
     },
-    "generator": "Sketchfab-3.18.5",
+    "generator": "Sketchfab-6.9.0",
     "version": "2.0"
   },
   "bufferViews": [
     {
       "buffer": 0,
-      "byteLength": 1080,
+      "byteLength": 4632,
       "byteOffset": 0,
       "name": "floatBufferViews",
       "target": 34963
     },
     {
       "buffer": 0,
-      "byteLength": 1448,
-      "byteOffset": 1080,
+      "byteLength": 5776,
+      "byteOffset": 4632,
       "byteStride": 8,
       "name": "floatBufferViews",
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 4344,
-      "byteOffset": 2528,
+      "byteLength": 17328,
+      "byteOffset": 10408,
       "byteStride": 12,
       "name": "floatBufferViews",
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 2896,
-      "byteOffset": 6872,
+      "byteLength": 11552,
+      "byteOffset": 27736,
       "byteStride": 16,
       "name": "floatBufferViews",
       "target": 34962
@@ -123,30 +123,19 @@
   ],
   "buffers": [
     {
-      "byteLength": 9768,
+      "byteLength": 39288,
       "uri": "scene.bin"
     }
   ],
-  "extensionsUsed": [
-    "KHR_materials_unlit"
-  ],
   "images": [
     {
-      "uri": "textures/Standardmaterial_baseColor.png"
+      "uri": "textures/Material.007_baseColor.png"
     }
   ],
   "materials": [
     {
       "doubleSided": true,
-      "emissiveFactor": [
-        0,
-        0,
-        0
-      ],
-      "extensions": {
-        "KHR_materials_unlit": {}
-      },
-      "name": "Standardmaterial",
+      "name": "Material.007",
       "pbrMetallicRoughness": {
         "baseColorFactor": [
           1,
@@ -159,13 +148,13 @@
           "texCoord": 0
         },
         "metallicFactor": 0,
-        "roughnessFactor": 1
+        "roughnessFactor": 0.85915338060000002
       }
     }
   ],
   "meshes": [
     {
-      "name": "Box003_Standardmaterial_0",
+      "name": "Cube_Material.007_0",
       "primitives": [
         {
           "attributes": {
@@ -222,7 +211,7 @@
         0,
         1
       ],
-      "name": "Scorpio.fbx"
+      "name": "eb9ef741930b4c46be9decba2abca94f.fbx"
     },
     {
       "children": [
@@ -235,34 +224,34 @@
         5
       ],
       "matrix": [
-        1,
+        100,
         0,
         0,
         0,
         0,
-        2.2204460492503131e-16,
-        -1,
+        -1.6292067939183141e-05,
+        -99.999999999998678,
         0,
         0,
-        1,
-        2.2204460492503131e-16,
+        99.999999999998678,
+        -1.6292067939183141e-05,
         0,
         0,
         0,
-        -5.2611579895019531,
+        0,
         1
       ],
-      "name": "Box003"
+      "name": "Cube"
     },
     {
       "mesh": 0,
-      "name": "Box003_Standardmaterial_0"
+      "name": "Cube_Material.007_0"
     }
   ],
   "samplers": [
     {
-      "magFilter": 9728,
-      "minFilter": 9728,
+      "magFilter": 9729,
+      "minFilter": 9987,
       "wrapS": 10497,
       "wrapT": 10497
     }
