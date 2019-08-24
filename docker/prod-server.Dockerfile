@@ -26,7 +26,7 @@ ADD packages/server ./packages/server
 RUN npm config set scripts-prepend-node-path true
 
 # Install dev and project dependencies
-RUN yarn install
+RUN yarn
 RUN yarn bootstrap
 
 # Build
