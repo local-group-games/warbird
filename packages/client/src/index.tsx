@@ -1,18 +1,21 @@
 import {
   Body,
   command,
-  SystemState,
-  Tile,
-  Ship,
   Entity,
+  isBall,
+  isShip,
+  isTile,
+  SystemState,
 } from "colyseus-test-core";
 import { Client, Room } from "colyseus.js";
-import React, { Suspense, useEffect, useState, useMemo } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { Canvas, CanvasContext, useRender, useThree } from "react-three-fiber";
 import { Euler, Math as M, PCFSoftShadowMap, Vector3 } from "three";
 import { createInputListener } from "./input";
-import { Ship as ShipComponent } from "./objects/Ship";
+import { Ship } from "./objects/Ship";
+import { Tile } from "./objects/Tile";
+import { Ball } from "./objects/Ball";
 
 const input = createInputListener({
   KeyW: "thrustForward",
@@ -50,21 +53,6 @@ async function main() {
 
   ReactDOM.render(<Game />, document.getElementById("root"));
 }
-
-function TileComponent(props: { tile: Tile }) {
-  const { x, y } = props.tile;
-  const position = useMemo(() => new Vector3(x, y, 0), [x, y]);
-
-  return (
-    <mesh position={position} castShadow receiveShadow>
-      <boxGeometry attach="geometry" args={[1, 1, 1]} />
-      <meshStandardMaterial attach="material" />
-    </mesh>
-  );
-}
-
-const isShip = (entity: Entity): entity is Ship => entity.type === "ship";
-const isTile = (entity: Entity): entity is Tile => entity.type === "tile";
 
 function Main(props: { room: Room; client: Client }) {
   const { client, room } = props;
@@ -105,6 +93,7 @@ function Main(props: { room: Room; client: Client }) {
 
   const ships = entities.filter(isShip);
   const tiles = entities.filter(isTile);
+  const balls = entities.filter(isBall);
 
   return (
     <Suspense fallback={null}>
@@ -116,10 +105,13 @@ function Main(props: { room: Room; client: Client }) {
       />
       <ambientLight intensity={0.3} />
       {ships.map(body => (
-        <ShipComponent key={body.id} body={body} />
+        <Ship key={body.id} body={body} />
       ))}
       {tiles.map(tile => (
-        <TileComponent key={tile.id} tile={tile} />
+        <Tile key={tile.id} tile={tile} />
+      ))}
+      {balls.map(body => (
+        <Ball key={body.id} body={body} />
       ))}
     </Suspense>
   );

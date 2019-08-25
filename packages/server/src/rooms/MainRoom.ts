@@ -8,6 +8,7 @@ import {
   SystemState,
   Ship,
   Tile,
+  Ball,
 } from "colyseus-test-core";
 import { World } from "p2";
 
@@ -42,14 +43,22 @@ export class MainRoom extends Room<SystemState> {
       system.entities.push(tile);
     }
 
+    system.entities.push(
+      new Ball({
+        id: Math.random().toString(),
+        x: -10,
+        y: -10,
+      }),
+    );
+
     this.setState(system);
     this.setSimulationInterval(this.update);
   }
 
   onJoin(client: Client) {
     const id = client.sessionId;
-    const x = (Math.random() - 0.5) * 5;
-    const y = (Math.random() - 0.5) * 5;
+    const x = (Math.random() - 0.5) * -10;
+    const y = (Math.random() - 0.5) * -10;
     const body = new Ship({ id, x, y });
 
     this.state.entities.push(body);
@@ -99,7 +108,7 @@ export class MainRoom extends Room<SystemState> {
       if (command.thrustForward || command.thrustReverse) {
         const thrust =
           (Number(command.thrustForward) - Number(command.thrustReverse)) *
-          5 *
+          2 *
           (command.afterburners ? 2 : 1);
 
         this.physics.applyForceLocal(body, [0, thrust]);
@@ -109,8 +118,7 @@ export class MainRoom extends Room<SystemState> {
         const turn =
           (Number(command.turnLeft) - Number(command.turnRight)) * 0.05;
 
-        body.angle += turn;
-        body.angularVelocity = 0;
+        this.physics.rotate(body, body.angle + turn);
       }
     }
 

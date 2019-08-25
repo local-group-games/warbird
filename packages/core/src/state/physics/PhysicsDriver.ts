@@ -2,7 +2,7 @@ import { ArraySchema } from "@colyseus/schema";
 import { ChangeTree } from "@colyseus/schema/lib/ChangeTree";
 import { Body as P2Body, Box, World } from "p2";
 import { Body } from "../model/Body";
-import { syncBodyToSchema, syncSchemaToBody } from "./syncBody";
+import { syncBodyToSchema } from "./syncBody";
 
 export class PhysicsDriver {
   private state: ArraySchema<Body>;
@@ -18,7 +18,7 @@ export class PhysicsDriver {
     const changes = (this.state as any).$changes as ChangeTree;
 
     for (const index of changes.allChanges) {
-      const schema: Body = this.state[index];
+      const schema: Body = this.state[index as number];
       let body = this.bodiesBySchema.get(schema);
 
       if (!schema) {
@@ -50,8 +50,6 @@ export class PhysicsDriver {
         return;
       }
 
-      syncSchemaToBody(schema, body);
-
       this.world.step(1 / 60, deltaTime / 1000, 10);
 
       syncBodyToSchema(body, schema);
@@ -66,11 +64,23 @@ export class PhysicsDriver {
     const body = this.bodiesBySchema.get(schema);
 
     if (!body) {
-      console.warn(`Attempted to apply force to unregistered body.`);
+      console.warn(`Attempted to apply force to an unregistered body.`);
       return;
     }
 
     body.applyForceLocal(force, point);
+  }
+
+  rotate(schema: Body, angle: number) {
+    const body = this.bodiesBySchema.get(schema);
+
+    if (!body) {
+      console.warn(`Attempted to rotate an unregistered body.`);
+      return;
+    }
+
+    body.angle = angle;
+    body.angularVelocity = 0;
   }
 
   dispose() {}
