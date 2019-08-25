@@ -6,7 +6,7 @@ import cors from "cors";
 import { createServer } from "http";
 import { MainRoom } from "./rooms/MainRoom";
 
-const PORT = Number(process.env.PORT || 3000);
+const PORT = Number(process.env.PORT || 3001);
 
 const auth = basicAuth({ users: { admin: "admin" }, challenge: true });
 const app = express();

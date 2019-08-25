@@ -17,7 +17,7 @@ services:
       context: .
       dockerfile: ./docker/dev-client.Dockerfile
     environment:
-      SERVER_URL: localhost:3001
+      SERVER_HOST: localhost:3001
     ports:
       - 3000:3000
     volumes:

@@ -17,7 +17,7 @@ services:
       dockerfile: ./docker/prod-client.Dockerfile
     image: gcr.io/osmium-250702/osmium-client
     environment:
-      SERVER_URL: localhost/server
+      SERVER_HOST: localhost/server
     ports:
       - 80:80
     networks:

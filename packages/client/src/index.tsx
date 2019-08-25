@@ -25,7 +25,7 @@ const input = createInputListener({
 
 async function main() {
   const client = new Client(
-    `ws://${(window as any).APP_CONFIGURATION.SERVER_URL.replace(
+    `ws://${(window as any).APP_CONFIGURATION.SERVER_HOST.replace(
       "localhost",
       window.location.hostname,
     )}`,
