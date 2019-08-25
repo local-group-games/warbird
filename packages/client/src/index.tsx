@@ -10,7 +10,7 @@ import { Client, Room } from "colyseus.js";
 import React, { Suspense, useEffect, useState, useMemo } from "react";
 import ReactDOM from "react-dom";
 import { Canvas, CanvasContext, useRender, useThree } from "react-three-fiber";
-import { Euler, Math as M, PCFSoftShadowMap, Vector2, Vector3 } from "three";
+import { Euler, Math as M, PCFSoftShadowMap, Vector3 } from "three";
 import { createInputListener } from "./input";
 import { Ship as ShipComponent } from "./objects/Ship";
 

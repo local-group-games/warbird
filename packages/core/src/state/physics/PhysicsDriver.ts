@@ -34,14 +34,12 @@ export class PhysicsDriver {
       }
 
       if (!body) {
-        const shape = new Box({
-          width: 1,
-          height: 1,
-        });
+        const { x, y, mass, width, height } = schema;
+        const shape = new Box({ width, height });
 
         body = new P2Body({
-          position: [schema.x, schema.y],
-          mass: schema.mass,
+          position: [x, y],
+          mass,
         });
 
         body.addShape(shape);

@@ -11,15 +11,17 @@ import {
 } from "colyseus-test-core";
 import { World } from "p2";
 
-const tiles = [
-  { x: 5, y: 5 },
-  { x: 5, y: 6 },
-  { x: 6, y: 6 },
-  { x: 7, y: 6 },
-  { x: 8, y: 6 },
-  { x: 9, y: 6 },
-  { x: 9, y: 5 },
+const pattern: number[][] = [
+  [0, 0],
+  [0, 1],
+  [1, 1],
+  [2, 1],
+  [3, 1],
+  [4, 1],
+  [4, 0],
 ];
+
+const map = [...pattern, ...pattern.map(([x, y]) => [-(y + 1), -(x + 1)])];
 
 export class MainRoom extends Room<SystemState> {
   private physics: PhysicsDriver;
@@ -34,8 +36,10 @@ export class MainRoom extends Room<SystemState> {
 
     this.physics = physics;
 
-    for (const tile of tiles) {
-      system.entities.push(new Tile({ id: Math.random().toString(), ...tile }));
+    for (const [x, y] of map) {
+      const tile = new Tile({ id: Math.random().toString(), x, y });
+
+      system.entities.push(tile);
     }
 
     this.setState(system);

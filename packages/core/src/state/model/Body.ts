@@ -7,6 +7,8 @@ export type BodyOptions = EntityOptions & {
   angle?: number;
   angularVelocity?: number;
   mass?: number;
+  width?: number;
+  height?: number;
 };
 
 export class Body extends Entity {
@@ -20,12 +22,15 @@ export class Body extends Entity {
   angularVelocity: number = 0;
   @type("number")
   mass: number = 0;
+  @type("number")
+  width: number = 1;
+  @type("number")
+  height: number = 1;
+
+  type = "body";
 
   constructor(options: BodyOptions) {
     super(options);
-
-    this.type = "body";
-
     Object.assign(this, options);
   }
 }
