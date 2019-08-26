@@ -13,8 +13,8 @@ export function getBulletOptions(ship: Ship) {
   } = ship;
   const s = Math.sin(angle);
   const c = Math.cos(angle);
-  const x = -(height + 0.5) * s + shipX;
-  const y = (height + 0.5) * c + shipY;
+  const x = -1 * s + shipX;
+  const y = 1 * c + shipY;
   const velocityX = -BULLET_VELOCITY * s + shipVelocityX;
   const velocityY = BULLET_VELOCITY * c + shipVelocityY;
 

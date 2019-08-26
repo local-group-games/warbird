@@ -2,8 +2,8 @@ import { type } from "@colyseus/schema";
 import { Entity, EntityOptions } from "./Entity";
 
 export type BodyOptions = EntityOptions & {
-  x?: number;
-  y?: number;
+  x: number;
+  y: number;
   angle?: number;
   angularVelocity?: number;
   mass?: number;
@@ -16,9 +16,9 @@ export type BodyOptions = EntityOptions & {
 
 export class Body extends Entity {
   @type("float32")
-  x = 0;
+  x: number;
   @type("float32")
-  y = 0;
+  y: number;
   @type("float32")
   angle = 0;
   @type("float32")

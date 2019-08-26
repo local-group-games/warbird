@@ -27,11 +27,6 @@ env-config.js
 # etc
 analytics.tgz
 
-packages/dock/stubs/*.js
-packages/core/src/helpers/*.js
-packages/core/src/middleware/*.js
-packages/core/src/types/model/**/*.js
-packages/core/src/types/*.js
 *.diff
 
 
