@@ -6,6 +6,7 @@ import {
   isShip,
   isTile,
   SystemState,
+  isBullet,
 } from "colyseus-test-core";
 import { Client, Room } from "colyseus.js";
 import React, { Suspense, useEffect, useState } from "react";
@@ -16,6 +17,7 @@ import { createInputListener } from "./input";
 import { Ship } from "./objects/Ship";
 import { Tile } from "./objects/Tile";
 import { Ball } from "./objects/Ball";
+import { Bullet } from "./objects/Bullet";
 
 const input = createInputListener({
   KeyW: "thrustForward",
@@ -94,6 +96,7 @@ function Main(props: { room: Room; client: Client }) {
   const ships = entities.filter(isShip);
   const tiles = entities.filter(isTile);
   const balls = entities.filter(isBall);
+  const bullets = entities.filter(isBullet);
 
   return (
     <Suspense fallback={null}>
@@ -112,6 +115,9 @@ function Main(props: { room: Room; client: Client }) {
       ))}
       {balls.map(body => (
         <Ball key={body.id} body={body} />
+      ))}
+      {bullets.map(body => (
+        <Bullet key={body.id} body={body} />
       ))}
     </Suspense>
   );

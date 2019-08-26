@@ -34,12 +34,23 @@ export class PhysicsDriver {
       }
 
       if (!body) {
-        const { x, y, mass, width, height } = schema;
+        const {
+          x,
+          y,
+          mass,
+          width,
+          height,
+          velocityX,
+          velocityY,
+          fixedRotation,
+        } = schema;
         const shape = new Box({ width, height });
 
         body = new P2Body({
           position: [x, y],
           mass,
+          velocity: [velocityX, velocityY],
+          fixedRotation,
         });
 
         body.addShape(shape);
@@ -50,10 +61,11 @@ export class PhysicsDriver {
         return;
       }
 
-      this.world.step(1 / 60, deltaTime / 1000, 10);
-
+      body.wakeUp();
       syncBodyToSchema(body, schema);
     }
+
+    this.world.step(1 / 60, deltaTime / 1000, 10);
   }
 
   applyForceLocal(

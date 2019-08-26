@@ -1,11 +1,11 @@
 import { Body } from "colyseus-test-core";
 import React, { useMemo, useRef } from "react";
-import { Group, Math as M } from "three";
 import { useRender } from "react-three-fiber";
+import { Math as M, Mesh } from "three";
 
 export function Ball(props: { body: Body }) {
   const { width } = props.body;
-  const ref = useRef<Group>();
+  const ref = useRef<Mesh>();
   const args = useMemo(() => [width / 2, 16, 16], [width]) as [
     number,
     number,
@@ -14,16 +14,16 @@ export function Ball(props: { body: Body }) {
 
   useRender(
     () => {
-      const { current: group } = ref;
+      const { current: mesh } = ref;
 
-      if (!group) {
+      if (!mesh) {
         return;
       }
 
-      group.rotation.set(0, 0, M.lerp(group.rotation.z, props.body.angle, 0.3));
-      group.position.set(
-        M.lerp(group.position.x, props.body.x, 0.3),
-        M.lerp(group.position.y, props.body.y, 0.3),
+      mesh.rotation.set(0, 0, M.lerp(mesh.rotation.z, props.body.angle, 0.3));
+      mesh.position.set(
+        M.lerp(mesh.position.x, props.body.x, 0.3),
+        M.lerp(mesh.position.y, props.body.y, 0.3),
         0,
       );
     },

@@ -9,28 +9,39 @@ export type BodyOptions = EntityOptions & {
   mass?: number;
   width?: number;
   height?: number;
+  velocityX?: number;
+  velocityY?: number;
+  fixedRotation?: boolean;
 };
 
 export class Body extends Entity {
-  @type("number")
-  x: number = 0;
-  @type("number")
-  y: number = 0;
-  @type("number")
-  angle: number = 0;
-  @type("number")
-  angularVelocity: number = 0;
-  @type("number")
-  mass: number = 0;
-  @type("number")
-  width: number = 1;
-  @type("number")
-  height: number = 1;
+  @type("float32")
+  x = 0;
+  @type("float32")
+  y = 0;
+  @type("float32")
+  angle = 0;
+  @type("float32")
+  angularVelocity = 0;
+  @type("float32")
+  mass = 0;
+  @type("float32")
+  width = 1;
+  @type("float32")
+  height = 1;
+  @type("float32")
+  velocityX = 0;
+  @type("float32")
+  velocityY = 0;
 
   type = "body";
 
+  createdTime = Date.now();
+  fixedRotation = false;
+
   constructor(options: BodyOptions) {
     super(options);
+
     Object.assign(this, options);
   }
 }
