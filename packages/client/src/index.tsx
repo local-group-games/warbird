@@ -84,8 +84,8 @@ function Main(props: { room: Room; client: Client }) {
       }
 
       camera.position.set(
-        M.lerp(camera.position.x, playerBody.x, 0.2),
-        M.lerp(camera.position.y, playerBody.y, 0.2) - 1,
+        M.lerp(camera.position.x, playerBody.x, 0.3),
+        M.lerp(camera.position.y, playerBody.y, 0.3) - 1,
         10,
       );
     },

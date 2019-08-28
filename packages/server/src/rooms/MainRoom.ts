@@ -106,6 +106,8 @@ export class MainRoom extends Room<SystemState> {
   }
 
   update = (deltaTime: number) => {
+    const now = Date.now();
+
     for (const client of this.clients) {
       const command = this.commandsByClient.get(client);
       const entityId = this.state.entityIdsByClientSessionId[client.sessionId];
@@ -129,24 +131,26 @@ export class MainRoom extends Room<SystemState> {
         this.physics.rotate(ship, ship.angle + turn);
       }
 
-      const now = Date.now();
+      if (command.fire) {
+        if (now - ship.lastFireTime > 100) {
+          const id = nanoid();
 
-      if (command.fire && now - ship.lastFireTime > 100) {
-        const id = nanoid();
+          this.state.entities.push(
+            new Bullet({
+              id,
+              ...getBulletOptions(ship),
+            }),
+          );
 
-        this.state.entities.push(
-          new Bullet({
-            id,
-            ...getBulletOptions(ship),
-          }),
-        );
-
-        ship.lastFireTime = now;
+          ship.lastFireTime = now;
+        }
       }
     }
 
-    for (const bullet of this.state.entities.filter(isBullet)) {
-      if (Date.now() - bullet.createdTime >= 1000) {
+    const bullets = this.state.entities.filter(isBullet);
+
+    for (const bullet of bullets) {
+      if (now - bullet.createdTime >= 1000) {
         this.state.entities.splice(this.state.entities.indexOf(bullet), 1);
       }
     }
