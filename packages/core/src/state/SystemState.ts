@@ -1,9 +1,9 @@
-import { MapSchema, Schema, type, ArraySchema } from "@colyseus/schema";
+import { MapSchema, Schema, type } from "@colyseus/schema";
 import { Body } from "./model/Body";
 
 export class SystemState extends Schema {
-  @type([Body])
-  entities = new ArraySchema<Body>();
+  @type({ map: Body })
+  entities = new MapSchema<Body>();
   @type({ map: "string" })
   entityIdsByClientSessionId = new MapSchema<string>();
 }

@@ -64,12 +64,12 @@ function Main(props: { room: Room; client: Client }) {
 
   useEffect(() => {
     const listener = (state: SystemState) => {
-      setEntities(state.entities);
-
+      const entities = Object.values(state.entities);
       const entityId = state.entityIdsByClientSessionId[room.sessionId];
-      const body = state.entities.find(entity => entity.id === entityId);
+      const playerBody = entities.find(entity => entity.id === entityId);
 
-      setPlayerBody(body);
+      setEntities(entities);
+      setPlayerBody(playerBody);
     };
 
     room.onStateChange(listener);
@@ -126,7 +126,7 @@ function Main(props: { room: Room; client: Client }) {
 const defaultCameraOptions = {
   rotation: new Euler(0.15, 0.1, 0),
   position: new Vector3(0, 0, 10),
-  zoom: 30,
+  zoom: 25,
 };
 
 const onCanvasCreated = ({ gl }: CanvasContext) => {

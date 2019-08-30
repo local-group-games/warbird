@@ -25,7 +25,7 @@ export const useSmoothPosition = (body: Body, alpha: number = 0.3) => {
         return;
       }
 
-      const nextAngle = Math.lerp(ref.current.rotation.z, angle, 0.5);
+      const nextAngle = Math.lerp(ref.current.rotation.z, angle, 0.6);
       const nextX = Math.lerp(ref.current.position.x, x, alpha);
       const nextY = Math.lerp(ref.current.position.y, y, alpha);
 

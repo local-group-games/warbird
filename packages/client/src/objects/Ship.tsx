@@ -4,7 +4,7 @@ import { Vector3 } from "three";
 import useModel from "../hooks/useModel";
 import { useSmoothPosition } from "../hooks/useSmoothPosition";
 
-const shipMeshScale = new Vector3(0.25, 0.25, 0.25);
+const shipMeshScale = new Vector3(0.2, 0.2, 0.2);
 const shipMeshRotation = [0, 0, Math.PI / 2];
 const shipMeshOffset = [0, -2, 0];
 

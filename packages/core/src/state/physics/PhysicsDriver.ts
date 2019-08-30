@@ -1,15 +1,15 @@
-import { ArraySchema } from "@colyseus/schema";
+import { MapSchema } from "@colyseus/schema";
 import { ChangeTree } from "@colyseus/schema/lib/ChangeTree";
 import { Body as P2Body, Box, World } from "p2";
 import { Body } from "../model/Body";
 import { syncBodyToSchema } from "./syncBody";
 
 export class PhysicsDriver {
-  private state: ArraySchema<Body>;
+  private state: MapSchema<Body>;
   private world: World;
-  private bodiesBySchema = new Map<Body, P2Body>();
+  private bodiesBySchemaId = new Map<string, P2Body>();
 
-  constructor(state: ArraySchema<Body>, world: World) {
+  constructor(state: MapSchema<Body>, world: World) {
     this.state = state;
     this.world = world;
   }
@@ -17,12 +17,14 @@ export class PhysicsDriver {
   update(deltaTime: number) {
     const changes = (this.state as any).$changes as ChangeTree;
 
-    for (const index of changes.allChanges) {
-      const schema: Body = this.state[index as number];
-      let body = this.bodiesBySchema.get(schema);
+    for (const bodyId of changes.changes) {
+      const id = bodyId as string;
+      const schema: Body = this.state[id];
+      let body = this.bodiesBySchemaId.get(id);
 
+      // Body removed
       if (!schema) {
-        this.bodiesBySchema.delete(schema);
+        this.bodiesBySchemaId.delete(id);
 
         if (body) {
           this.world.removeBody(body);
@@ -30,7 +32,7 @@ export class PhysicsDriver {
           console.warn(`Schema removed without body.`);
         }
 
-        return;
+        continue;
       }
 
       if (!body) {
@@ -52,20 +54,24 @@ export class PhysicsDriver {
           velocity: [velocityX, velocityY],
           fixedRotation,
         });
-
         body.addShape(shape);
 
         this.world.addBody(body);
-        this.bodiesBySchema.set(schema, body);
-
-        return;
+        this.bodiesBySchemaId.set(id, body);
       }
 
       body.wakeUp();
-      syncBodyToSchema(body, schema);
     }
 
     this.world.step(1 / 60, deltaTime / 1000, 10);
+
+    this.bodiesBySchemaId.forEach((body, schemaId) => {
+      const schema = this.state[schemaId];
+
+      if (schema) {
+        syncBodyToSchema(body, schema);
+      }
+    });
   }
 
   applyForceLocal(
@@ -73,7 +79,7 @@ export class PhysicsDriver {
     force: [number, number],
     point?: [number, number],
   ) {
-    const body = this.bodiesBySchema.get(schema);
+    const body = this.bodiesBySchemaId.get(schema.id);
 
     if (!body) {
       console.warn(`Attempted to apply force to an unregistered body.`);
@@ -84,7 +90,7 @@ export class PhysicsDriver {
   }
 
   rotate(schema: Body, angle: number) {
-    const body = this.bodiesBySchema.get(schema);
+    const body = this.bodiesBySchemaId.get(schema.id);
 
     if (!body) {
       console.warn(`Attempted to rotate an unregistered body.`);

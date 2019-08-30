@@ -1,7 +1,6 @@
 import { Client, Room } from "colyseus";
 import {
   Ball,
-  Body,
   GameMessage,
   GameMessageType,
   PhysicsDriver,
@@ -43,24 +42,25 @@ export class MainRoom extends Room<SystemState> {
 
     const physics = new PhysicsDriver(system.entities, world);
 
-    this.physics = physics;
-
     for (const [x, y] of map) {
-      const tile = new Tile({ id: nanoid(), x, y });
+      const id = nanoid();
+      const tile = new Tile({ id, x, y });
 
-      system.entities.push(tile);
+      system.entities[id] = tile;
     }
 
-    system.entities.push(
-      new Ball({
-        id: nanoid(),
-        x: -10,
-        y: -10,
-      }),
-    );
+    const id = nanoid();
+    const ball = new Ball({
+      id,
+      x: -10,
+      y: -10,
+    });
+
+    system.entities[id] = ball;
 
     this.setState(system);
     this.setSimulationInterval(this.update);
+    this.physics = physics;
   }
 
   onJoin(client: Client) {
@@ -69,7 +69,7 @@ export class MainRoom extends Room<SystemState> {
     const y = (Math.random() - 0.5) * -5;
     const body = new Ship({ id, x, y });
 
-    this.state.entities.push(body);
+    this.state.entities[id] = body;
     this.state.entityIdsByClientSessionId[client.sessionId] = body.id;
     this.commandsByClient.set(client, {
       thrustForward: false,
@@ -94,12 +94,8 @@ export class MainRoom extends Room<SystemState> {
 
   onLeave(client: Client) {
     const entityId = this.state.entityIdsByClientSessionId[client.sessionId];
-    const entityIndex = this.state.entities.findIndex(
-      entity => entity.id === entityId,
-    );
 
-    this.state.entities.splice(entityIndex, 1);
-
+    delete this.state.entities[entityId];
     delete this.state.entityIdsByClientSessionId[client.sessionId];
 
     this.commandsByClient.delete(client);
@@ -111,14 +107,12 @@ export class MainRoom extends Room<SystemState> {
     for (const client of this.clients) {
       const command = this.commandsByClient.get(client);
       const entityId = this.state.entityIdsByClientSessionId[client.sessionId];
-      const ship = this.state.entities.find(
-        entity => entity.id === entityId,
-      ) as Ship;
+      const ship = this.state.entities[entityId];
 
       if (command.thrustForward || command.thrustReverse) {
         const thrust =
           (Number(command.thrustForward) - Number(command.thrustReverse)) *
-          6 *
+          10 *
           (command.afterburners ? 2 : 1);
 
         this.physics.applyForceLocal(ship, [0, thrust]);
@@ -126,7 +120,7 @@ export class MainRoom extends Room<SystemState> {
 
       if (command.turnLeft || command.turnRight) {
         const turn =
-          (Number(command.turnLeft) - Number(command.turnRight)) * 0.1;
+          (Number(command.turnLeft) - Number(command.turnRight)) * 0.075;
 
         this.physics.rotate(ship, ship.angle + turn);
       }
@@ -134,24 +128,23 @@ export class MainRoom extends Room<SystemState> {
       if (command.fire) {
         if (now - ship.lastFireTime > 100) {
           const id = nanoid();
+          const bullet = new Bullet({
+            id,
+            ...getBulletOptions(ship),
+          });
 
-          this.state.entities.push(
-            new Bullet({
-              id,
-              ...getBulletOptions(ship),
-            }),
-          );
+          this.state.entities[id] = bullet;
 
           ship.lastFireTime = now;
         }
       }
     }
 
-    const bullets = this.state.entities.filter(isBullet);
+    const bullets = Object.values(this.state.entities).filter(isBullet);
 
     for (const bullet of bullets) {
       if (now - bullet.createdTime >= 1000) {
-        this.state.entities.splice(this.state.entities.indexOf(bullet), 1);
+        delete this.state.entities[bullet.id];
       }
     }
 
