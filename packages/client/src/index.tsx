@@ -13,7 +13,7 @@ import { Client, Room } from "colyseus.js";
 import React, { Suspense, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { Canvas, CanvasContext, useRender, useThree } from "react-three-fiber";
-import { Math, PCFSoftShadowMap, Vector3 } from "three";
+import { Math, PCFSoftShadowMap, Vector3, Euler } from "three";
 import { createInputListener } from "./input";
 import { Ship } from "./objects/Ship";
 import { Tile } from "./objects/Tile";
@@ -47,7 +47,6 @@ async function main() {
         camera={defaultCameraOptions}
         pixelRatio={window.devicePixelRatio}
         style={{ backgroundColor: "#111" }}
-        orthographic
       >
         <Main room={room} client={client} />
       </Canvas>
@@ -64,17 +63,29 @@ function Main(props: { room: Room; client: Client }) {
   const { camera } = useThree();
 
   useEffect(() => {
-    const vec = new Vector3();
+    var vec = new Vector3(); // create once and reuse
+    var pos = new Vector3(); // create once and reuse
 
     window.addEventListener("click", event => {
       vec.set(
         (event.clientX / window.innerWidth) * 2 - 1,
         -(event.clientY / window.innerHeight) * 2 + 1,
-        0,
+        0.5,
       );
+
       vec.unproject(camera);
 
-      room.send(placeTile(vec.x, vec.y));
+      vec.sub(camera.position).normalize();
+
+      var distance = -camera.position.z / vec.z;
+
+      pos.copy(camera.position).add(vec.multiplyScalar(distance));
+      // const blah = camera.rotation.toVector3().negate();
+
+      // vec.unproject(camera);
+      // vec.applyEuler(new Euler(blah.x, blah.y, 0));
+
+      room.send(placeTile(pos.x, pos.y));
     });
   }, []);
 
@@ -102,7 +113,7 @@ function Main(props: { room: Room; client: Client }) {
       camera.position.set(
         Math.lerp(camera.position.x, playerBody.x, 0.3),
         Math.lerp(camera.position.y, playerBody.y, 0.3) - 1,
-        10,
+        50,
       );
     },
     false,
@@ -140,9 +151,8 @@ function Main(props: { room: Room; client: Client }) {
 }
 
 const defaultCameraOptions = {
-  // rotation: new Euler(0.15, 0.1, 0),
+  fov: 45,
   position: new Vector3(0, 0, 10),
-  zoom: 25,
 };
 
 const onCanvasCreated = ({ gl }: CanvasContext) => {
