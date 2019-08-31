@@ -7,12 +7,13 @@ import {
   isTile,
   SystemState,
   isBullet,
+  placeTile,
 } from "colyseus-test-core";
 import { Client, Room } from "colyseus.js";
 import React, { Suspense, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { Canvas, CanvasContext, useRender, useThree } from "react-three-fiber";
-import { Euler, Math as M, PCFSoftShadowMap, Vector3 } from "three";
+import { Math, PCFSoftShadowMap, Vector3 } from "three";
 import { createInputListener } from "./input";
 import { Ship } from "./objects/Ship";
 import { Tile } from "./objects/Tile";
@@ -63,6 +64,21 @@ function Main(props: { room: Room; client: Client }) {
   const { camera } = useThree();
 
   useEffect(() => {
+    const vec = new Vector3();
+
+    window.addEventListener("click", event => {
+      vec.set(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        -(event.clientY / window.innerHeight) * 2 + 1,
+        0,
+      );
+      vec.unproject(camera);
+
+      room.send(placeTile(vec.x, vec.y));
+    });
+  }, []);
+
+  useEffect(() => {
     const listener = (state: SystemState) => {
       const entities = Object.values(state.entities);
       const entityId = state.entityIdsByClientSessionId[room.sessionId];
@@ -84,8 +100,8 @@ function Main(props: { room: Room; client: Client }) {
       }
 
       camera.position.set(
-        M.lerp(camera.position.x, playerBody.x, 0.3),
-        M.lerp(camera.position.y, playerBody.y, 0.3) - 1,
+        Math.lerp(camera.position.x, playerBody.x, 0.3),
+        Math.lerp(camera.position.y, playerBody.y, 0.3) - 1,
         10,
       );
     },
@@ -124,7 +140,7 @@ function Main(props: { room: Room; client: Client }) {
 }
 
 const defaultCameraOptions = {
-  rotation: new Euler(0.15, 0.1, 0),
+  // rotation: new Euler(0.15, 0.1, 0),
   position: new Vector3(0, 0, 10),
   zoom: 25,
 };

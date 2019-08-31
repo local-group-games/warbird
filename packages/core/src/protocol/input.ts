@@ -2,6 +2,7 @@ import { Message } from "./Message";
 
 export enum GameMessageType {
   PlayerCommand,
+  PlaceTile,
 }
 
 export type PlayerCommandPayload = {
@@ -16,6 +17,7 @@ export type PlayerCommandPayload = {
 export type PlayerCommand<
   T extends keyof PlayerCommandPayload = keyof PlayerCommandPayload
 > = Message<GameMessageType.PlayerCommand, [T, PlayerCommandPayload[T]]>;
+export type PlaceTile = Message<GameMessageType.PlaceTile, [number, number]>;
 
 export function command<K extends keyof PlayerCommandPayload>(
   type: K,
@@ -24,4 +26,8 @@ export function command<K extends keyof PlayerCommandPayload>(
   return [GameMessageType.PlayerCommand, [type, value]];
 }
 
-export type GameMessage = PlayerCommand;
+export function placeTile(x: number, y: number): PlaceTile {
+  return [GameMessageType.PlaceTile, [x, y]];
+}
+
+export type GameMessage = PlayerCommand | PlaceTile;

@@ -1,4 +1,5 @@
 import { Body } from "./Body";
+import { CollisionGroup } from "./collision";
 
 export class Ship extends Body {
   type = "ship";
@@ -7,4 +8,7 @@ export class Ship extends Body {
   height = 2;
 
   lastFireTime = 0;
+  collisionGroup = CollisionGroup.Vehicle;
+  collisionMask =
+    CollisionGroup.Vehicle | CollisionGroup.Projectile | CollisionGroup.Static;
 }

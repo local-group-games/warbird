@@ -38,6 +38,8 @@ export class Body extends Entity {
 
   createdTime = Date.now();
   fixedRotation = false;
+  collisionGroup: number = 1;
+  collisionMask: number = 1;
 
   constructor(options: BodyOptions) {
     super(options);

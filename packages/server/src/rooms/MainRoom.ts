@@ -1,16 +1,18 @@
 import { Client, Room } from "colyseus";
 import {
   Ball,
+  Bullet,
+  Entity,
   GameMessage,
   GameMessageType,
-  PhysicsDriver,
+  getBulletOptions,
+  isBullet,
+  isDestructible,
+  P2PhysicsDriver,
   PlayerCommandPayload,
   Ship,
   SystemState,
   Tile,
-  Bullet,
-  getBulletOptions,
-  isBullet,
 } from "colyseus-test-core";
 import nanoid from "nanoid";
 import { World } from "p2";
@@ -28,8 +30,9 @@ const pattern: number[][] = [
 const map = pattern.map(([x, y]) => [x + 10, y + 10]);
 
 export class MainRoom extends Room<SystemState> {
-  private physics: PhysicsDriver;
+  private physics: P2PhysicsDriver;
   private commandsByClient = new WeakMap<Client, PlayerCommandPayload>();
+  private entitiesToAdd = new Set<Entity>();
 
   onCreate() {
     const system = new SystemState();
@@ -40,37 +43,50 @@ export class MainRoom extends Room<SystemState> {
     world.sleepMode = World.BODY_SLEEPING;
     world.defaultContactMaterial.restitution = 0.35;
 
-    const physics = new PhysicsDriver(system.entities, world);
-
-    for (const [x, y] of map) {
-      const id = nanoid();
-      const tile = new Tile({ id, x, y });
-
-      system.entities[id] = tile;
-    }
-
-    const id = nanoid();
-    const ball = new Ball({
-      id,
-      x: -10,
-      y: -10,
+    const physics = new P2PhysicsDriver({
+      state: system.entities,
+      world,
+      onCollisionStart: (a, b) => {
+        if (a.type === "bullet" && b.type === "tile") {
+          (b as Tile).health -= 25;
+          delete this.state.entities[a.id];
+        } else if (a.type === "tile" && b.type === "bullet") {
+          (a as Tile).health -= 25;
+          delete this.state.entities[b.id];
+        }
+      },
+      onCollisionEnd: () => {},
     });
 
-    system.entities[id] = ball;
+    for (const [x, y] of map) {
+      this.addEntity(new Tile({ id: nanoid(), x, y }));
+    }
+
+    this.addEntity(
+      new Ball({
+        id: nanoid(),
+        x: -10,
+        y: -10,
+      }),
+    );
 
     this.setState(system);
     this.setSimulationInterval(this.update);
     this.physics = physics;
   }
 
+  addEntity(entity: Entity) {
+    this.entitiesToAdd.add(entity);
+  }
+
   onJoin(client: Client) {
     const id = client.sessionId;
     const x = (Math.random() - 0.5) * -5;
     const y = (Math.random() - 0.5) * -5;
-    const body = new Ship({ id, x, y });
+    const ship = new Ship({ id, x, y });
 
-    this.state.entities[id] = body;
-    this.state.entityIdsByClientSessionId[client.sessionId] = body.id;
+    this.addEntity(ship);
+    this.state.entityIdsByClientSessionId[client.sessionId] = ship.id;
     this.commandsByClient.set(client, {
       thrustForward: false,
       thrustReverse: false,
@@ -82,13 +98,34 @@ export class MainRoom extends Room<SystemState> {
   }
 
   onMessage(client: Client, message: GameMessage) {
-    const [type, payload] = message;
+    switch (message[0]) {
+      case GameMessageType.PlayerCommand: {
+        const [key, value] = message[1];
+        const command: PlayerCommandPayload = this.commandsByClient.get(client);
 
-    if (type === GameMessageType.PlayerCommand) {
-      const [key, value] = payload;
-      const command: PlayerCommandPayload = this.commandsByClient.get(client);
+        command[key] = value;
+        break;
+      }
+      case GameMessageType.PlaceTile: {
+        const [x, y] = message[1].map(Math.round);
+        const player = this.state.entities[
+          this.state.entityIdsByClientSessionId[client.sessionId]
+        ];
+        const tile = new Tile({ id: nanoid(), x, y });
+        const w = tile.width / 2 - 0.01;
+        const h = tile.height / 2 - 0.01;
+        const query = this.physics.query(x, y, x + w, y + h);
 
-      command[key] = value;
+        if (
+          query.length === 0 &&
+          Math.abs(player.x - x) < 5 &&
+          Math.abs(player.y - y) < 5
+        ) {
+          this.addEntity(new Tile({ id: nanoid(), x, y }));
+        }
+
+        break;
+      }
     }
   }
 
@@ -103,6 +140,11 @@ export class MainRoom extends Room<SystemState> {
 
   update = (deltaTime: number) => {
     const now = Date.now();
+
+    this.entitiesToAdd.forEach(
+      entity => (this.state.entities[entity.id] = entity),
+    );
+    this.entitiesToAdd.clear();
 
     for (const client of this.clients) {
       const command = this.commandsByClient.get(client);
@@ -125,26 +167,28 @@ export class MainRoom extends Room<SystemState> {
         this.physics.rotate(ship, ship.angle + turn);
       }
 
-      if (command.fire) {
-        if (now - ship.lastFireTime > 100) {
-          const id = nanoid();
-          const bullet = new Bullet({
-            id,
-            ...getBulletOptions(ship),
-          });
+      if (command.fire && now - ship.lastFireTime >= 150) {
+        const id = nanoid();
+        const bullet = new Bullet({
+          id,
+          ...getBulletOptions(ship),
+        });
 
-          this.state.entities[id] = bullet;
+        this.addEntity(bullet);
 
-          ship.lastFireTime = now;
-        }
+        ship.lastFireTime = now;
       }
     }
 
-    const bullets = Object.values(this.state.entities).filter(isBullet);
+    for (const entityId in this.state.entities) {
+      const entity = this.state.entities[entityId];
 
-    for (const bullet of bullets) {
-      if (now - bullet.createdTime >= 1000) {
-        delete this.state.entities[bullet.id];
+      if (isBullet(entity) && now - entity.createdTime >= 1000) {
+        delete this.state.entities[entity.id];
+      }
+
+      if (isDestructible(entity) && entity.health <= 0) {
+        delete this.state.entities[entity.id];
       }
     }
 

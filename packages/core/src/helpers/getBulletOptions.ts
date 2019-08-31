@@ -1,22 +1,14 @@
 import { Ship } from "../state";
 
-const BULLET_VELOCITY = 15;
+const BULLET_VELOCITY = 20;
 
 export function getBulletOptions(ship: Ship) {
-  const {
-    angle,
-    height,
-    x: shipX,
-    y: shipY,
-    velocityX: shipVelocityX,
-    velocityY: shipVelocityY,
-  } = ship;
-  const s = Math.sin(angle);
-  const c = Math.cos(angle);
-  const x = -1 * s + shipX;
-  const y = 1 * c + shipY;
-  const velocityX = -BULLET_VELOCITY * s + shipVelocityX;
-  const velocityY = BULLET_VELOCITY * c + shipVelocityY;
+  const s = Math.sin(ship.angle);
+  const c = Math.cos(ship.angle);
+  const x = -1 * s + ship.x;
+  const y = 1 * c + ship.y;
+  const velocityX = -BULLET_VELOCITY * s + ship.velocityX;
+  const velocityY = BULLET_VELOCITY * c + ship.velocityY;
 
   return {
     x,
