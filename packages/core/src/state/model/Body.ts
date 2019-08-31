@@ -22,16 +22,14 @@ export class Body extends Entity {
   @type("float32")
   angle = 0;
   @type("float32")
-  angularVelocity = 0;
-  @type("float32")
   mass = 0;
   @type("float32")
   width = 1;
   @type("float32")
   height = 1;
-  @type("float32")
+
+  angularVelocity = 0;
   velocityX = 0;
-  @type("float32")
   velocityY = 0;
 
   type = "body";

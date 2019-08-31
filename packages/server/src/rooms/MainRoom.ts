@@ -33,6 +33,7 @@ export class MainRoom extends Room<SystemState> {
   private physics: P2PhysicsDriver;
   private commandsByClient = new WeakMap<Client, PlayerCommandPayload>();
   private entitiesToAdd = new Set<Entity>();
+  private entitiesToRemove = new Set<Entity>();
 
   onCreate() {
     const system = new SystemState();
@@ -49,10 +50,10 @@ export class MainRoom extends Room<SystemState> {
       onCollisionStart: (a, b) => {
         if (a.type === "bullet" && b.type === "tile") {
           (b as Tile).health -= 25;
-          delete this.state.entities[a.id];
+          this.removeEntity(a);
         } else if (a.type === "tile" && b.type === "bullet") {
           (a as Tile).health -= 25;
-          delete this.state.entities[b.id];
+          this.removeEntity(b);
         }
       },
       onCollisionEnd: () => {},
@@ -77,6 +78,10 @@ export class MainRoom extends Room<SystemState> {
 
   addEntity(entity: Entity) {
     this.entitiesToAdd.add(entity);
+  }
+
+  removeEntity(entity: Entity) {
+    this.entitiesToRemove.add(entity);
   }
 
   onJoin(client: Client) {
@@ -131,20 +136,28 @@ export class MainRoom extends Room<SystemState> {
 
   onLeave(client: Client) {
     const entityId = this.state.entityIdsByClientSessionId[client.sessionId];
+    const entity = this.state.entities[entityId];
 
-    delete this.state.entities[entityId];
     delete this.state.entityIdsByClientSessionId[client.sessionId];
 
+    this.removeEntity(entity);
     this.commandsByClient.delete(client);
   }
 
   update = (deltaTime: number) => {
     const now = Date.now();
 
-    this.entitiesToAdd.forEach(
-      entity => (this.state.entities[entity.id] = entity),
-    );
-    this.entitiesToAdd.clear();
+    for (const entityId in this.state.entities) {
+      const entity = this.state.entities[entityId];
+
+      if (isBullet(entity) && now - entity.createdTime >= 1000) {
+        this.removeEntity(entity);
+      }
+
+      if (isDestructible(entity) && entity.health <= 0) {
+        this.removeEntity(entity);
+      }
+    }
 
     for (const client of this.clients) {
       const command = this.commandsByClient.get(client);
@@ -180,17 +193,15 @@ export class MainRoom extends Room<SystemState> {
       }
     }
 
-    for (const entityId in this.state.entities) {
-      const entity = this.state.entities[entityId];
+    this.entitiesToAdd.forEach(
+      entity => (this.state.entities[entity.id] = entity),
+    );
+    this.entitiesToAdd.clear();
 
-      if (isBullet(entity) && now - entity.createdTime >= 1000) {
-        delete this.state.entities[entity.id];
-      }
-
-      if (isDestructible(entity) && entity.health <= 0) {
-        delete this.state.entities[entity.id];
-      }
-    }
+    this.entitiesToRemove.forEach(
+      entity => delete this.state.entities[entity.id],
+    );
+    this.entitiesToRemove.clear();
 
     this.physics.update(deltaTime);
   };

@@ -140,6 +140,8 @@ export class P2PhysicsDriver {
         syncBodyToSchema(body, schema);
       }
     });
+
+    console.log(this.world.bodies.length);
   }
 
   query(x1: number, y1: number, x2: number, y2: number) {
