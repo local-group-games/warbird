@@ -14,7 +14,12 @@ export function Ball(props: { entity: Body }) {
   return (
     <mesh castShadow receiveShadow {...objectProps}>
       <sphereGeometry attach="geometry" args={args} />
-      <meshStandardMaterial attach="material" />
+      <meshStandardMaterial
+        attach="material"
+        metalness={0.4}
+        roughness={0.7}
+        wireframe
+      />
     </mesh>
   );
 }

@@ -57,7 +57,7 @@ function Loader() {
         right: 0,
         bottom: 0,
         left: 0,
-        background: "#000",
+        background: "#030303",
       }}
     >
       <h2
@@ -100,7 +100,7 @@ async function main() {
       onCreated={onCanvasCreated}
       camera={defaultCameraOptions}
       pixelRatio={window.devicePixelRatio}
-      style={{ backgroundColor: "#000" }}
+      style={{ backgroundColor: "#030303" }}
     >
       <Main room={room} client={client} />
     </Canvas>,
@@ -182,12 +182,12 @@ function Main(props: { room: Room; client: Client }) {
   return (
     <Suspense fallback={null}>
       <directionalLight
-        intensity={0.3}
+        intensity={0.5}
         position={[-50, -175, 100]}
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
-      <ambientLight intensity={0.3} />
+      <ambientLight intensity={0.2} />
       {objects}
     </Suspense>
   );

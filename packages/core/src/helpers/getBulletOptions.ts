@@ -1,6 +1,6 @@
 import { Ship } from "../state";
 
-const BULLET_VELOCITY = 20;
+const BULLET_VELOCITY = 25;
 
 export function getBulletOptions(ship: Ship) {
   const s = Math.sin(ship.angle);

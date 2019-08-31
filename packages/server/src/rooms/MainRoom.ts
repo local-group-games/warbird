@@ -13,7 +13,9 @@ import {
   Ship,
   SystemState,
   Tile,
+  StaticTile,
   Body,
+  isTile,
 } from "colyseus-test-core";
 import nanoid from "nanoid";
 import { World } from "p2";
@@ -52,7 +54,7 @@ export class MainRoom extends Room<SystemState> {
     });
 
     for (const [x, y] of map) {
-      this.addEntity(new Tile({ id: nanoid(), x, y }));
+      this.addEntity(new StaticTile({ id: nanoid(), x, y }));
     }
 
     for (let i = 0; i < 10; i++) {
@@ -71,10 +73,10 @@ export class MainRoom extends Room<SystemState> {
   }
 
   onCollisionStart = (a: Body, b: Body) => {
-    if (a.type === "bullet" && b.type === "tile") {
+    if (isBullet(a) && isTile(b) && isDestructible(b)) {
       (b as Tile).health -= 25;
       this.removeEntity(a);
-    } else if (a.type === "tile" && b.type === "bullet") {
+    } else if (isTile(a) && isBullet(b) && isDestructible(a)) {
       (a as Tile).health -= 25;
       this.removeEntity(b);
     }

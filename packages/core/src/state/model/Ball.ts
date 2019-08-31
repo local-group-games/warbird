@@ -7,9 +7,9 @@ export class Ball extends Body {
   width = 1;
   height = 1;
 
-  fixedRotation = true;
-  damping = 0.3;
-  collisionGroup = CollisionGroup.Projectile;
+  damping = 0.5;
+  angularDamping = 0.5;
+  collisionGroup = CollisionGroup.Vehicle;
   collisionMask =
     CollisionGroup.Projectile | CollisionGroup.Static | CollisionGroup.Vehicle;
 }
