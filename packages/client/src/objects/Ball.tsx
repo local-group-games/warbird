@@ -2,9 +2,9 @@ import { Body } from "colyseus-test-core";
 import React, { useMemo } from "react";
 import { useSmoothPosition } from "../hooks/useSmoothPosition";
 
-export function Ball(props: { body: Body }) {
-  const { width } = props.body;
-  const objectProps = useSmoothPosition(props.body);
+export function Ball(props: { entity: Body }) {
+  const { width } = props.entity;
+  const objectProps = useSmoothPosition(props.entity);
   const args = useMemo(() => [width / 2, 16, 16], [width]) as [
     number,
     number,

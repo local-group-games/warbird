@@ -13,6 +13,7 @@ import {
   Ship,
   SystemState,
   Tile,
+  Body,
 } from "colyseus-test-core";
 import nanoid from "nanoid";
 import { World } from "p2";
@@ -47,34 +48,37 @@ export class MainRoom extends Room<SystemState> {
     const physics = new P2PhysicsDriver({
       state: system.entities,
       world,
-      onCollisionStart: (a, b) => {
-        if (a.type === "bullet" && b.type === "tile") {
-          (b as Tile).health -= 25;
-          this.removeEntity(a);
-        } else if (a.type === "tile" && b.type === "bullet") {
-          (a as Tile).health -= 25;
-          this.removeEntity(b);
-        }
-      },
-      onCollisionEnd: () => {},
+      onCollisionStart: this.onCollisionStart,
     });
 
     for (const [x, y] of map) {
       this.addEntity(new Tile({ id: nanoid(), x, y }));
     }
 
-    this.addEntity(
-      new Ball({
-        id: nanoid(),
-        x: -10,
-        y: -10,
-      }),
-    );
+    for (let i = 0; i < 10; i++) {
+      this.addEntity(
+        new Ball({
+          id: nanoid(),
+          x: Math.random() * -10,
+          y: Math.random() * -10,
+        }),
+      );
+    }
 
     this.setState(system);
     this.setSimulationInterval(this.update);
     this.physics = physics;
   }
+
+  onCollisionStart = (a: Body, b: Body) => {
+    if (a.type === "bullet" && b.type === "tile") {
+      (b as Tile).health -= 25;
+      this.removeEntity(a);
+    } else if (a.type === "tile" && b.type === "bullet") {
+      (a as Tile).health -= 25;
+      this.removeEntity(b);
+    }
+  };
 
   addEntity(entity: Entity) {
     this.entitiesToAdd.add(entity);

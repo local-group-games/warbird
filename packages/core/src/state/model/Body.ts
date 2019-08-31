@@ -28,13 +28,13 @@ export class Body extends Entity {
   @type("float32")
   height = 1;
 
+  createdTime = Date.now();
+
   angularVelocity = 0;
   velocityX = 0;
   velocityY = 0;
-
-  type = "body";
-
-  createdTime = Date.now();
+  angularDamping = 0;
+  damping = 0;
   fixedRotation = false;
   collisionGroup: number = 1;
   collisionMask: number = 1;

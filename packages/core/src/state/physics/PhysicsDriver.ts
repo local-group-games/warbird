@@ -109,6 +109,8 @@ export class P2PhysicsDriver {
           fixedRotation,
           collisionGroup,
           collisionMask,
+          angularDamping,
+          damping,
         } = schema;
         const shape = new Box({ width, height });
 
@@ -121,6 +123,8 @@ export class P2PhysicsDriver {
           velocity: [velocityX, velocityY],
           fixedRotation,
         });
+        body.angularDamping = angularDamping;
+        body.damping = damping;
         body.addShape(shape);
 
         this.world.addBody(body);
@@ -140,8 +144,6 @@ export class P2PhysicsDriver {
         syncBodyToSchema(body, schema);
       }
     });
-
-    console.log(this.world.bodies.length);
   }
 
   query(x1: number, y1: number, x2: number, y2: number) {

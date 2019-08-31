@@ -3,22 +3,29 @@ import {
   command,
   Entity,
   isBall,
+  isBullet,
   isShip,
   isTile,
-  SystemState,
-  isBullet,
   placeTile,
+  SystemState,
 } from "colyseus-test-core";
 import { Client, Room } from "colyseus.js";
-import React, { Suspense, useEffect, useState } from "react";
+import React, {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import ReactDOM from "react-dom";
 import { Canvas, CanvasContext, useRender, useThree } from "react-three-fiber";
-import { Math, PCFSoftShadowMap, Vector3, Euler } from "three";
+import { Math, PCFSoftShadowMap } from "three";
+import { useClick } from "./hooks/useClick";
 import { createInputListener } from "./input";
-import { Ship } from "./objects/Ship";
-import { Tile } from "./objects/Tile";
 import { Ball } from "./objects/Ball";
 import { Bullet } from "./objects/Bullet";
+import { Ship } from "./objects/Ship";
+import { Tile } from "./objects/Tile";
 
 const input = createInputListener({
   KeyW: "thrustForward",
@@ -29,6 +36,50 @@ const input = createInputListener({
   ShiftLeft: "afterburners",
 });
 
+async function preload() {
+  // @ts-ignore
+  const myFont = new FontFace(
+    "PragmataPro Mono Liga",
+    "url(./assets/fonts/PragmataProMonoLiga.woff2)",
+  );
+  // @ts-ignore
+  const font = await myFont.load();
+  // @ts-ignore
+  document.fonts.add(font);
+}
+
+function Loader() {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        background: "#000",
+      }}
+    >
+      <h2
+        style={{
+          position: "absolute",
+          top: "50%",
+          translate: `transformY(-50%)`,
+          color: "#fff",
+          textAlign: "center",
+          width: "100%",
+          fontSize: 16,
+          textTransform: "lowercase",
+          fontVariant: "small-caps",
+          fontFamily: '"PragmataPro Mono Liga", monospace',
+        }}
+      >
+        Loading...
+      </h2>
+    </div>
+  );
+}
+
 async function main() {
   const client = new Client(
     `ws://${(window as any).APP_CONFIGURATION.SERVER_HOST.replace(
@@ -38,65 +89,42 @@ async function main() {
   );
   const room = await client.joinOrCreate<SystemState>("main");
 
+  ReactDOM.render(<Loader />, document.getElementById("root"));
+  await new Promise(res => setTimeout(res, 500));
+  await preload();
+
   input.subscribe((key, value) => room.send(command(key, value)));
 
-  function Game() {
-    return (
-      <Canvas
-        onCreated={onCanvasCreated}
-        camera={defaultCameraOptions}
-        pixelRatio={window.devicePixelRatio}
-        style={{ backgroundColor: "#111" }}
-      >
-        <Main room={room} client={client} />
-      </Canvas>
-    );
-  }
-
-  ReactDOM.render(<Game />, document.getElementById("root"));
+  ReactDOM.render(
+    <Canvas
+      onCreated={onCanvasCreated}
+      camera={defaultCameraOptions}
+      pixelRatio={window.devicePixelRatio}
+      style={{ backgroundColor: "#000" }}
+    >
+      <Main room={room} client={client} />
+    </Canvas>,
+    document.getElementById("root"),
+  );
 }
 
 function Main(props: { room: Room; client: Client }) {
   const { client, room } = props;
   const [entities, setEntities] = useState<Entity[]>([]);
-  const [playerBody, setPlayerBody] = useState<Body>();
+  const [player, setPlayerBody] = useState<Body>();
   const { camera } = useThree();
+  const onClick = useCallback((x, y) => room.send(placeTile(x, y)), [room]);
 
-  useEffect(() => {
-    var vec = new Vector3(); // create once and reuse
-    var pos = new Vector3(); // create once and reuse
-
-    window.addEventListener("click", event => {
-      vec.set(
-        (event.clientX / window.innerWidth) * 2 - 1,
-        -(event.clientY / window.innerHeight) * 2 + 1,
-        0.5,
-      );
-
-      vec.unproject(camera);
-
-      vec.sub(camera.position).normalize();
-
-      var distance = -camera.position.z / vec.z;
-
-      pos.copy(camera.position).add(vec.multiplyScalar(distance));
-      // const blah = camera.rotation.toVector3().negate();
-
-      // vec.unproject(camera);
-      // vec.applyEuler(new Euler(blah.x, blah.y, 0));
-
-      room.send(placeTile(pos.x, pos.y));
-    });
-  }, []);
+  useClick(camera, onClick);
 
   useEffect(() => {
     const listener = (state: SystemState) => {
       const entities = Object.values(state.entities);
       const entityId = state.entityIdsByClientSessionId[room.sessionId];
-      const playerBody = entities.find(entity => entity.id === entityId);
+      const player = entities.find(entity => entity.id === entityId);
 
       setEntities(entities);
-      setPlayerBody(playerBody);
+      setPlayerBody(player);
     };
 
     room.onStateChange(listener);
@@ -106,24 +134,50 @@ function Main(props: { room: Room; client: Client }) {
 
   useRender(
     () => {
-      if (!playerBody) {
+      if (!player) {
         return;
       }
 
       camera.position.set(
-        Math.lerp(camera.position.x, playerBody.x, 0.3),
-        Math.lerp(camera.position.y, playerBody.y, 0.3) - 1,
+        Math.lerp(camera.position.x, player.x, 0.3),
+        Math.lerp(camera.position.y, player.y, 0.3) - 1,
         50,
       );
     },
     false,
-    [entities],
+    [player, entities],
   );
 
-  const ships = entities.filter(isShip);
-  const tiles = entities.filter(isTile);
-  const balls = entities.filter(isBall);
-  const bullets = entities.filter(isBullet);
+  const objects = useMemo(
+    () =>
+      entities.reduce(
+        (acc, entity) => {
+          const { id } = entity;
+
+          if (isShip(entity)) {
+            acc.push(
+              <Ship key={id} entity={entity} showLabel={entity !== player} />,
+            );
+          }
+
+          if (isBall(entity)) {
+            acc.push(<Ball key={id} entity={entity} />);
+          }
+
+          if (isTile(entity)) {
+            acc.push(<Tile key={id} entity={entity} />);
+          }
+
+          if (isBullet(entity)) {
+            acc.push(<Bullet key={id} entity={entity} />);
+          }
+
+          return acc;
+        },
+        [] as JSX.Element[],
+      ),
+    [player, entities],
+  );
 
   return (
     <Suspense fallback={null}>
@@ -134,25 +188,13 @@ function Main(props: { room: Room; client: Client }) {
         shadow-mapSize-height={2048}
       />
       <ambientLight intensity={0.3} />
-      {ships.map(body => (
-        <Ship key={body.id} body={body} />
-      ))}
-      {tiles.map(tile => (
-        <Tile key={tile.id} tile={tile} />
-      ))}
-      {balls.map(body => (
-        <Ball key={body.id} body={body} />
-      ))}
-      {bullets.map(body => (
-        <Bullet key={body.id} body={body} />
-      ))}
+      {objects}
     </Suspense>
   );
 }
 
 const defaultCameraOptions = {
   fov: 45,
-  position: new Vector3(0, 0, 10),
 };
 
 const onCanvasCreated = ({ gl }: CanvasContext) => {
