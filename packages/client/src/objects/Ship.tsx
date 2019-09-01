@@ -16,7 +16,7 @@ const defaultTextPosition = new Vector3(1, 0, 0);
 
 export function Ship(props: ShipProps) {
   const { entity, showLabel = true } = props;
-  const objectProps = useSmoothPosition(entity);
+  const objectProps = useSmoothPosition(entity, 0.6);
   const [geometries] = useModel("/assets/ship/scene.gltf");
 
   const meshes = geometries.map(({ geometry, material }) => (

@@ -30,11 +30,15 @@ const pattern: number[][] = [
   [4, 0],
 ];
 
+const SHIP_BASE_THRUST = 10;
+const SHIP_AFTERBURNER_THRUST_MODIFIER = 2;
+const SHIP_BASE_TURN = 0.06;
+
 const map = pattern.map(([x, y]) => [x + 10, y + 10]);
 
 export class MainRoom extends Room<SystemState> {
   private physics: P2PhysicsDriver;
-  private commandsByClient = new WeakMap<Client, PlayerCommandPayload>();
+  private commandsByClientId = new Map<string, PlayerCommandPayload>();
   private entitiesToAdd = new Set<Entity>();
   private entitiesToRemove = new Set<Entity>();
 
@@ -68,6 +72,7 @@ export class MainRoom extends Room<SystemState> {
     }
 
     this.setState(system);
+    this.setPatchRate((1 / 30) * 1000);
     this.setSimulationInterval(this.update);
     this.physics = physics;
   }
@@ -98,7 +103,7 @@ export class MainRoom extends Room<SystemState> {
 
     this.addEntity(ship);
     this.state.entityIdsByClientSessionId[client.sessionId] = ship.id;
-    this.commandsByClient.set(client, {
+    this.commandsByClientId.set(client.sessionId, {
       thrustForward: false,
       thrustReverse: false,
       turnLeft: false,
@@ -112,7 +117,9 @@ export class MainRoom extends Room<SystemState> {
     switch (message[0]) {
       case GameMessageType.PlayerCommand: {
         const [key, value] = message[1];
-        const command: PlayerCommandPayload = this.commandsByClient.get(client);
+        const command: PlayerCommandPayload = this.commandsByClientId.get(
+          client.id,
+        );
 
         command[key] = value;
         break;
@@ -140,14 +147,20 @@ export class MainRoom extends Room<SystemState> {
     }
   }
 
-  onLeave(client: Client) {
-    const entityId = this.state.entityIdsByClientSessionId[client.sessionId];
-    const entity = this.state.entities[entityId];
+  async onLeave(client: Client) {
+    try {
+      // allow disconnected client to reconnect into this room until 20 seconds
+      await this.allowReconnection(client, 20);
+    } catch (e) {
+      console.log("RIP");
+      const entityId = this.state.entityIdsByClientSessionId[client.sessionId];
+      const entity = this.state.entities[entityId];
 
-    delete this.state.entityIdsByClientSessionId[client.sessionId];
+      delete this.state.entityIdsByClientSessionId[client.sessionId];
 
-    this.removeEntity(entity);
-    this.commandsByClient.delete(client);
+      this.removeEntity(entity);
+      this.commandsByClientId.delete(client.id);
+    }
   }
 
   update = (deltaTime: number) => {
@@ -166,22 +179,23 @@ export class MainRoom extends Room<SystemState> {
     }
 
     for (const client of this.clients) {
-      const command = this.commandsByClient.get(client);
+      const command = this.commandsByClientId.get(client.id);
       const entityId = this.state.entityIdsByClientSessionId[client.sessionId];
       const ship = this.state.entities[entityId];
 
       if (command.thrustForward || command.thrustReverse) {
         const thrust =
           (Number(command.thrustForward) - Number(command.thrustReverse)) *
-          10 *
-          (command.afterburners ? 2 : 1);
+          SHIP_BASE_THRUST *
+          (command.afterburners ? SHIP_AFTERBURNER_THRUST_MODIFIER : 1);
 
         this.physics.applyForceLocal(ship, [0, thrust]);
       }
 
       if (command.turnLeft || command.turnRight) {
         const turn =
-          (Number(command.turnLeft) - Number(command.turnRight)) * 0.075;
+          (Number(command.turnLeft) - Number(command.turnRight)) *
+          SHIP_BASE_TURN;
 
         this.physics.rotate(ship, ship.angle + turn);
       }

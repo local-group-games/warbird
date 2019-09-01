@@ -3,7 +3,7 @@ import { useRef } from "react";
 import { useRender } from "react-three-fiber";
 import { Math, Object3D } from "three";
 
-export const useSmoothPosition = (body: Body, alpha: number = 0.3) => {
+export const useSmoothPosition = (body: Body, alpha: number) => {
   const { x, y, angle } = body;
   const ref = useRef<Object3D>();
   const init = useRef(true);
@@ -25,7 +25,7 @@ export const useSmoothPosition = (body: Body, alpha: number = 0.3) => {
         return;
       }
 
-      const nextAngle = Math.lerp(ref.current.rotation.z, angle, 0.5);
+      const nextAngle = Math.lerp(ref.current.rotation.z, angle, 0.9);
       const nextX = Math.lerp(ref.current.position.x, x, alpha);
       const nextY = Math.lerp(ref.current.position.y, y, alpha);
 

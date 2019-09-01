@@ -5,7 +5,7 @@ import { useSmoothPosition } from "../hooks/useSmoothPosition";
 export function Bullet(props: { entity: Body }) {
   const { width } = props.entity;
   const args = useMemo(() => [width / 3, 5], [width]) as [number, number];
-  const objectProps = useSmoothPosition(props.entity);
+  const objectProps = useSmoothPosition(props.entity, 0.6);
 
   return (
     <mesh {...objectProps}>

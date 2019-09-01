@@ -80,6 +80,40 @@ function Loader() {
   );
 }
 
+function waitMs(ms: number) {
+  return new Promise(res => setTimeout(res, ms));
+}
+
+async function connect<S>(
+  client: Client,
+  roomName: string,
+  pollInterval: number = 1000,
+) {
+  let room: Room<S> | undefined;
+
+  const previousRoomId = localStorage.getItem("roomId");
+  const previousSessionId = localStorage.getItem("sessionId");
+
+  while (!room) {
+    try {
+      if (previousRoomId && previousSessionId) {
+        room = await client.reconnect(previousRoomId, previousSessionId);
+      } else {
+        room = await client.joinOrCreate(roomName);
+      }
+    } catch (e) {
+      localStorage.removeItem("roomId");
+      localStorage.removeItem("sessionId");
+      await waitMs(pollInterval);
+    }
+  }
+
+  localStorage.setItem("roomId", room.id);
+  localStorage.setItem("sessionId", room.sessionId);
+
+  return room as Room<S>;
+}
+
 async function main() {
   const client = new Client(
     `ws://${(window as any).APP_CONFIGURATION.SERVER_HOST.replace(
@@ -87,11 +121,16 @@ async function main() {
       window.location.hostname,
     )}`,
   );
-  const room = await client.joinOrCreate<SystemState>("main");
 
   ReactDOM.render(<Loader />, document.getElementById("root"));
-  await new Promise(res => setTimeout(res, 500));
-  await preload();
+
+  const [room] = await Promise.all([
+    connect<SystemState>(
+      client,
+      "main",
+    ),
+    preload(),
+  ]);
 
   input.subscribe((key, value) => room.send(command(key, value)));
 
@@ -139,8 +178,8 @@ function Main(props: { room: Room; client: Client }) {
       }
 
       camera.position.set(
-        Math.lerp(camera.position.x, player.x, 0.3),
-        Math.lerp(camera.position.y, player.y, 0.3) - 1,
+        Math.lerp(camera.position.x, player.x, 0.6),
+        Math.lerp(camera.position.y, player.y, 0.6) - 1,
         50,
       );
     },
