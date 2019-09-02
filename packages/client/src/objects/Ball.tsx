@@ -1,15 +1,14 @@
-import { Body } from "colyseus-test-core";
+import { Ball as BallEntity, Body } from "colyseus-test-core";
 import React, { useMemo } from "react";
 import { useSmoothPosition } from "../hooks/useSmoothPosition";
 
-export function Ball(props: { entity: Body }) {
-  const { width } = props.entity;
-  const objectProps = useSmoothPosition(props.entity, 0.6);
-  const args = useMemo(() => [width / 2, 16, 16], [width]) as [
-    number,
-    number,
-    number,
-  ];
+export function Ball(props: { body: Body; ball: BallEntity }) {
+  const { body } = props;
+  const { width } = body;
+  const objectProps = useSmoothPosition(body, 0.6);
+  const args = useMemo(() => [width / 2, 16, 16] as [number, number, number], [
+    width,
+  ]);
 
   return (
     <mesh castShadow receiveShadow {...objectProps}>

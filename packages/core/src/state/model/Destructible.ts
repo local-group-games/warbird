@@ -1,8 +1,4 @@
-import { Entity } from "./Entity";
-
 export interface Destructible {
   health: number;
+  invulnerable: boolean;
 }
-
-export const isDestructible = <T extends Entity>(entity: T) =>
-  typeof (entity as any).health === "number";

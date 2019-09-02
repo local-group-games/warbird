@@ -1,22 +1,22 @@
-import { Body } from "colyseus-test-core";
+import { Body, Ship as ShipEntity } from "colyseus-test-core";
 import React, { useRef } from "react";
-import { Vector3, Sprite } from "three";
+import { useRender } from "react-three-fiber";
+import { Sprite, Vector3 } from "three";
 import { Text } from "../components/Text";
 import useModel from "../hooks/useModel";
 import { useSmoothPosition } from "../hooks/useSmoothPosition";
-import { useRender } from "react-three-fiber";
 
 const shipMeshScale = new Vector3(0.2, 0.2, 0.2);
 const shipMeshRotation = [0, 0, Math.PI / 2];
 const shipMeshOffset = [0, -2, 0];
 
-type ShipProps = { entity: Body; showLabel?: boolean };
+type ShipProps = { ship: ShipEntity; body: Body; showLabel?: boolean };
 
 const defaultTextPosition = new Vector3(1, 0, 0);
 
 export function Ship(props: ShipProps) {
-  const { entity, showLabel = true } = props;
-  const objectProps = useSmoothPosition(entity, 0.6);
+  const { body, showLabel = true } = props;
+  const objectProps = useSmoothPosition(body, 0.6);
   const [geometries] = useModel("/assets/ship/scene.gltf");
 
   const meshes = geometries.map(({ geometry, material }) => (
@@ -44,7 +44,7 @@ export function Ship(props: ShipProps) {
   return (
     <>
       <Text position={defaultTextPosition} ref={text} visible={showLabel}>
-        {props.entity.id}
+        {props.ship.id}
       </Text>
       <group scale={shipMeshScale} {...objectProps}>
         {meshes}

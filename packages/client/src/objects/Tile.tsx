@@ -1,11 +1,12 @@
-import { Tile as TileEntity, isDestructible } from "colyseus-test-core";
+import { Body, Tile as TileEntity } from "colyseus-test-core";
 import React, { useMemo } from "react";
 import { Vector3 } from "three";
 
 const args = [1, 1, 1] as [number, number, number];
 
-export function Tile(props: { entity: TileEntity }) {
-  const { x, y, health } = props.entity;
+export function Tile(props: { body: Body; tile: TileEntity }) {
+  const { body, tile } = props;
+  const { x, y } = body;
   const position = useMemo(() => new Vector3(x, y, 0), [x, y]);
 
   return (
@@ -13,8 +14,8 @@ export function Tile(props: { entity: TileEntity }) {
       <boxGeometry attach="geometry" args={args} />
       <meshStandardMaterial
         attach="material"
-        color={isDestructible(props.entity) ? "#6933fe" : "#fff"}
-        opacity={isDestructible(props.entity) ? health / 100 : 1}
+        color={tile.invulnerable ? "#fff" : "#6933fe"}
+        opacity={tile.invulnerable ? 1 : tile.health / 100}
         metalness={0.2}
         roughness={0.7}
         transparent

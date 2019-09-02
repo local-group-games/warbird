@@ -1,14 +1,14 @@
-import { Ship } from "../state";
+import { BodySchema } from "../state";
 
 const BULLET_VELOCITY = 25;
 
-export function getBulletOptions(ship: Ship) {
-  const s = Math.sin(ship.angle);
-  const c = Math.cos(ship.angle);
-  const x = -1 * s + ship.x;
-  const y = 1 * c + ship.y;
-  const velocityX = -BULLET_VELOCITY * s + ship.velocityX;
-  const velocityY = BULLET_VELOCITY * c + ship.velocityY;
+export function getBulletOptions(origin: BodySchema) {
+  const s = Math.sin(origin.angle);
+  const c = Math.cos(origin.angle);
+  const x = -1 * s + origin.x;
+  const y = 1 * c + origin.y;
+  const velocityX = -BULLET_VELOCITY * s + origin.velocityX;
+  const velocityY = BULLET_VELOCITY * c + origin.velocityY;
 
   return {
     x,

@@ -7,7 +7,7 @@ import {
   isShip,
   isTile,
   placeTile,
-  SystemState,
+  GameState,
 } from "colyseus-test-core";
 import { Client, Room } from "colyseus.js";
 import React, {
@@ -125,7 +125,7 @@ async function main() {
   ReactDOM.render(<Loader />, document.getElementById("root"));
 
   const [room] = await Promise.all([
-    connect<SystemState>(
+    connect<GameState>(
       client,
       "main",
     ),
@@ -149,21 +149,31 @@ async function main() {
 
 function Main(props: { room: Room; client: Client }) {
   const { client, room } = props;
-  const [entities, setEntities] = useState<Entity[]>([]);
-  const [player, setPlayerBody] = useState<Body>();
+  const [entities, setEntities] = useState<Entity[]>();
+  const [bodies, setBodies] = useState<{ [bodyId: string]: Body }>();
+  const [playerBody, setPlayerBody] = useState<Body>();
   const { camera } = useThree();
   const onClick = useCallback((x, y) => room.send(placeTile(x, y)), [room]);
 
   useClick(camera, onClick);
 
   useEffect(() => {
-    const listener = (state: SystemState) => {
+    const listener = (state: GameState) => {
       const entities = Object.values(state.entities);
-      const entityId = state.entityIdsByClientSessionId[room.sessionId];
-      const player = entities.find(entity => entity.id === entityId);
+      const playerBody = state.players[room.sessionId];
+
+      if (playerBody.shipId) {
+        const ship = state.entities[playerBody.shipId];
+
+        if (ship.bodyId) {
+          const body = state.bodies[ship.bodyId];
+
+          setPlayerBody(body);
+        }
+      }
 
       setEntities(entities);
-      setPlayerBody(player);
+      setBodies(state.bodies);
     };
 
     room.onStateChange(listener);
@@ -173,49 +183,65 @@ function Main(props: { room: Room; client: Client }) {
 
   useRender(
     () => {
-      if (!player) {
+      if (!playerBody) {
         return;
       }
 
       camera.position.set(
-        Math.lerp(camera.position.x, player.x, 0.6),
-        Math.lerp(camera.position.y, player.y, 0.6) - 1,
+        Math.lerp(camera.position.x, playerBody.x, 0.6),
+        Math.lerp(camera.position.y, playerBody.y, 0.6),
         50,
       );
     },
     false,
-    [player, entities],
+    [playerBody, entities],
   );
 
   const objects = useMemo(
     () =>
+      entities &&
       entities.reduce(
         (acc, entity) => {
-          const { id } = entity;
+          const { id, bodyId } = entity;
+
+          if (!bodyId || !bodies) {
+            return acc;
+          }
+
+          const body = bodies[bodyId];
+
+          if (!body) {
+            return acc;
+          }
 
           if (isShip(entity)) {
             acc.push(
-              <Ship key={id} entity={entity} showLabel={entity !== player} />,
+              <Ship
+                key={id}
+                body={body}
+                ship={entity}
+                showLabel={body !== playerBody}
+              />,
             );
           }
 
           if (isBall(entity)) {
-            acc.push(<Ball key={id} entity={entity} />);
+            acc.push(<Ball key={id} body={body} ball={entity} />);
           }
 
           if (isTile(entity)) {
-            acc.push(<Tile key={id} entity={entity} />);
+            acc.push(<Tile key={id} body={body} tile={entity} />);
           }
 
           if (isBullet(entity)) {
-            acc.push(<Bullet key={id} entity={entity} />);
+            acc.push(<Bullet key={id} body={body} bullet={entity} />);
           }
 
           return acc;
         },
         [] as JSX.Element[],
       ),
-    [player, entities],
+    [playerBody, entities, bodies],
   );
 
   return (

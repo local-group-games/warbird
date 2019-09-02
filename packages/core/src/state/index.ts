@@ -1,3 +1,3 @@
 export * from "./physics";
-export * from "./SystemState";
+export * from "./schema";
 export * from "./model";
