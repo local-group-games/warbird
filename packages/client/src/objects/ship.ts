@@ -16,8 +16,6 @@ export async function createShip(ship: Ship) {
   model.position.x = ship.x;
   model.position.y = ship.y;
   model.scale.setScalar(0.002);
-  model.castShadow = true;
-  model.receiveShadow = true;
 
   model.traverse(child => {
     child.rotation.set(0, 0, Math.PI / -4);

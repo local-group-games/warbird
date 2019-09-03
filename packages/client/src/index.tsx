@@ -15,14 +15,14 @@ import { Client, Room } from "colyseus.js";
 import {
   AmbientLight,
   DirectionalLight,
-  Material,
   Math,
-  Mesh,
   Object3D,
   PCFSoftShadowMap,
   PerspectiveCamera,
   Scene,
   WebGLRenderer,
+  Mesh,
+  Material,
 } from "three";
 import { getMousePosition } from "./helpers/getMousePosition";
 import { createInputListener } from "./input";
@@ -76,7 +76,7 @@ function clearSession() {
 async function connect<S>(
   client: Client,
   roomName: string,
-  pollInterval: number = 3000,
+  pollInterval: number = 2000,
 ) {
   let room: Room<S> | undefined;
 
@@ -131,6 +131,29 @@ async function main() {
   function render() {
     const player: Player = room.state.players[room.sessionId];
 
+    objectsByEntity.forEach((object, entity: BodySchema) => {
+      object.position.set(
+        Math.lerp(object.position.x, entity.x, 0.6),
+        Math.lerp(object.position.y, entity.y, 0.6),
+        0,
+      );
+      object.rotation.set(
+        0,
+        0,
+        Math.lerp(object.rotation.z, entity.angle, 0.75),
+      );
+
+      if (isTile(entity)) {
+        const material = (object as Mesh).material as Material;
+
+        material.opacity = Math.lerp(
+          material.opacity,
+          entity.health / 100,
+          0.5,
+        );
+      }
+    });
+
     if (player && player.shipId) {
       const ship = room.state.entities[player.shipId];
 
@@ -156,9 +179,9 @@ async function main() {
     preload(),
   ]);
 
-  const objectsByEntity = new WeakMap<EntitySchema, Object3D>();
+  const objectsByEntity = new Map<BodySchema, Object3D>();
 
-  async function updatePhysicalEntity(entity: BodySchema) {
+  async function registerBody(entity: BodySchema) {
     let object = objectsByEntity.get(entity);
 
     if (!object) {
@@ -171,36 +194,33 @@ async function main() {
       } else if (isBullet(entity)) {
         object = createProjectile(entity);
       } else {
-        return;
+        throw new Error(
+          `Entity ${(entity as EntitySchema).type} not supported.`,
+        );
       }
 
       scene.add(object);
       objectsByEntity.set(entity, object);
     }
 
-    if (isTile(entity)) {
-      ((object as Mesh).material as Material).opacity = entity.health / 100;
-    }
-
-    object.position.x = Math.lerp(object.position.x, entity.x, 0.45);
-    object.position.y = Math.lerp(object.position.y, entity.y, 0.45);
-    object.rotation.z = Math.lerp(object.rotation.z, entity.angle, 0.6);
+    return object;
   }
 
-  const onAdd = (entity: EntitySchema) => {
+  const onAdd = async (entity: EntitySchema) => {
     if (isBody(entity)) {
-      updatePhysicalEntity(entity);
-      entity.onChange = () => updatePhysicalEntity(entity);
+      registerBody(entity);
     }
   };
   const onRemove = (entity: EntitySchema) => {
-    const object = objectsByEntity.get(entity);
+    if (isBody(entity)) {
+      const object = objectsByEntity.get(entity);
 
-    if (object) {
-      scene.remove(object);
+      if (object) {
+        scene.remove(object);
+      }
+
+      objectsByEntity.delete(entity);
     }
-
-    objectsByEntity.delete(entity);
   };
 
   Object.values(room.state.entities).forEach(onAdd);

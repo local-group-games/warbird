@@ -1,5 +1,4 @@
 import { type } from "@colyseus/schema";
-import nanoid from "nanoid";
 import { Body, CollisionGroup } from "../model/Body";
 import { EntitySchema } from "./EntitySchema";
 
