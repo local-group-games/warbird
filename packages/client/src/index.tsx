@@ -56,32 +56,46 @@ function waitMs(ms: number) {
   return new Promise(res => setTimeout(res, ms));
 }
 
+function cacheSession(room: Room) {
+  localStorage.setItem("roomId", room.id);
+  localStorage.setItem("sessionId", room.sessionId);
+}
+
+function getSession() {
+  const roomId = localStorage.getItem("roomId");
+  const sessionId = localStorage.getItem("sessionId");
+
+  return { roomId, sessionId };
+}
+
+function clearSession() {
+  localStorage.removeItem("roomId");
+  localStorage.removeItem("sessionId");
+}
+
 async function connect<S>(
   client: Client,
   roomName: string,
-  pollInterval: number = 5000,
+  pollInterval: number = 3000,
 ) {
   let room: Room<S> | undefined;
 
-  const previousRoomId = localStorage.getItem("roomId");
-  const previousSessionId = localStorage.getItem("sessionId");
-
   while (!room) {
+    const { roomId, sessionId } = getSession();
+
     try {
-      if (previousRoomId && previousSessionId) {
-        room = await client.reconnect(previousRoomId, previousSessionId);
+      if (roomId && sessionId) {
+        room = await client.reconnect(roomId, sessionId);
       } else {
         room = await client.joinOrCreate(roomName);
       }
     } catch (e) {
-      localStorage.removeItem("roomId");
-      localStorage.removeItem("sessionId");
+      clearSession();
       await waitMs(pollInterval);
     }
   }
 
-  localStorage.setItem("roomId", room.id);
-  localStorage.setItem("sessionId", room.sessionId);
+  cacheSession(room);
 
   return room as Room<S>;
 }
