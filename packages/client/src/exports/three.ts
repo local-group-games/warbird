@@ -105,3 +105,4 @@ export {
 export { ShaderMaterial } from "three/src/materials/ShaderMaterial.js";
 export { WireframeGeometry } from "three/src/geometries/WireframeGeometry.js";
 export { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+export { MeshLambertMaterial } from "three/src/materials/MeshLambertMaterial";

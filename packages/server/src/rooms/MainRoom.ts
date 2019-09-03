@@ -17,21 +17,22 @@ export class MainRoom extends BaseRoom {
 
     for (const [x, y] of map) {
       const tile = new TileSchema();
-      const body = tile.makeBody({ x, y });
+
+      tile.x = x;
+      tile.y = y;
 
       tile.invulnerable = true;
 
-      this.addEntity(tile, body);
+      this.addEntity(tile);
     }
 
     for (let i = 0; i < 10; i++) {
       const ball = new BallSchema();
-      const body = ball.makeBody({
-        x: (Math.random() - 0.5) * 2 * 10,
-        y: (Math.random() - 0.5) * 2 * 10,
-      });
 
-      this.addEntity(ball, body);
+      ball.x = Math.random() * -10;
+      ball.y = Math.random() * -10;
+
+      this.addEntity(ball);
     }
   }
 }

@@ -1,31 +1,35 @@
 import {
-  Body,
+  BodySchema,
   command,
-  Entity,
+  EntitySchema,
+  GameStateSchema,
   isBall,
+  isBody,
   isBullet,
   isShip,
   isTile,
   placeTile,
-  GameState,
+  Player,
 } from "colyseus-test-core";
 import { Client, Room } from "colyseus.js";
-import React, {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import ReactDOM from "react-dom";
-import { Canvas, CanvasContext, useRender, useThree } from "react-three-fiber";
-import { Math, PCFSoftShadowMap } from "three";
-import { useClick } from "./hooks/useClick";
+import {
+  AmbientLight,
+  DirectionalLight,
+  Material,
+  Math,
+  Mesh,
+  Object3D,
+  PCFSoftShadowMap,
+  PerspectiveCamera,
+  Scene,
+  WebGLRenderer,
+} from "three";
+import { getMousePosition } from "./helpers/getMousePosition";
 import { createInputListener } from "./input";
-import { Ball } from "./objects/Ball";
-import { Bullet } from "./objects/Bullet";
-import { Ship } from "./objects/Ship";
-import { Tile } from "./objects/Tile";
+import { createBall } from "./objects/ball";
+import { createProjectile } from "./objects/projectile";
+import { createShip } from "./objects/ship";
+import { createTile } from "./objects/tile";
 
 const input = createInputListener({
   KeyW: "thrustForward",
@@ -42,42 +46,10 @@ async function preload() {
     "PragmataPro Mono Liga",
     "url(./assets/fonts/PragmataProMonoLiga.woff2)",
   );
-  // @ts-ignore
   const font = await myFont.load();
+
   // @ts-ignore
   document.fonts.add(font);
-}
-
-function Loader() {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-        background: "#030303",
-      }}
-    >
-      <h2
-        style={{
-          position: "absolute",
-          top: "50%",
-          translate: `transformY(-50%)`,
-          color: "#fff",
-          textAlign: "center",
-          width: "100%",
-          fontSize: 16,
-          textTransform: "lowercase",
-          fontVariant: "small-caps",
-          fontFamily: '"PragmataPro Mono Liga", monospace',
-        }}
-      >
-        Loading...
-      </h2>
-    </div>
-  );
 }
 
 function waitMs(ms: number) {
@@ -87,7 +59,7 @@ function waitMs(ms: number) {
 async function connect<S>(
   client: Client,
   roomName: string,
-  pollInterval: number = 1000,
+  pollInterval: number = 5000,
 ) {
   let room: Room<S> | undefined;
 
@@ -115,6 +87,12 @@ async function connect<S>(
 }
 
 async function main() {
+  const canvas = document.getElementById("game") as HTMLCanvasElement;
+  const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
+  const ambientLight = new AmbientLight(0xffffff, 0.2);
+  const directionalLight = new DirectionalLight(0xffffff, 0.5);
+  const scene = new Scene();
+  const camera = new PerspectiveCamera(45);
   const client = new Client(
     `ws://${(window as any).APP_CONFIGURATION.SERVER_HOST.replace(
       "localhost",
@@ -122,149 +100,122 @@ async function main() {
     )}`,
   );
 
-  ReactDOM.render(<Loader />, document.getElementById("root"));
+  renderer.setClearAlpha(0);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = PCFSoftShadowMap;
+
+  camera.position.set(0, 0, 50);
+
+  directionalLight.position.set(-5, -15, 10);
+  directionalLight.shadowMapWidth = 2048;
+  directionalLight.shadowMapHeight = 2048;
+
+  scene.add(ambientLight);
+  scene.add(directionalLight);
+
+  function render() {
+    const player: Player = room.state.players[room.sessionId];
+
+    if (player && player.shipId) {
+      const ship = room.state.entities[player.shipId];
+
+      if (ship) {
+        const object = objectsByEntity.get(ship);
+
+        if (object) {
+          camera.position.x = object.position.x;
+          camera.position.y = object.position.y;
+        }
+      }
+    }
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(render);
+  }
 
   const [room] = await Promise.all([
-    connect<GameState>(
+    connect<GameStateSchema>(
       client,
       "main",
     ),
     preload(),
   ]);
 
-  input.subscribe((key, value) => room.send(command(key, value)));
+  const objectsByEntity = new WeakMap<EntitySchema, Object3D>();
 
-  ReactDOM.render(
-    <Canvas
-      onCreated={onCanvasCreated}
-      camera={defaultCameraOptions}
-      pixelRatio={window.devicePixelRatio}
-      style={{ backgroundColor: "#030303" }}
-    >
-      <Main room={room} client={client} />
-    </Canvas>,
-    document.getElementById("root"),
-  );
-}
+  async function updatePhysicalEntity(entity: BodySchema) {
+    let object = objectsByEntity.get(entity);
 
-function Main(props: { room: Room; client: Client }) {
-  const { client, room } = props;
-  const [entities, setEntities] = useState<Entity[]>();
-  const [bodies, setBodies] = useState<{ [bodyId: string]: Body }>();
-  const [playerBody, setPlayerBody] = useState<Body>();
-  const { camera } = useThree();
-  const onClick = useCallback((x, y) => room.send(placeTile(x, y)), [room]);
-
-  useClick(camera, onClick);
-
-  useEffect(() => {
-    const listener = (state: GameState) => {
-      const entities = Object.values(state.entities);
-      const playerBody = state.players[room.sessionId];
-
-      if (playerBody.shipId) {
-        const ship = state.entities[playerBody.shipId];
-
-        if (ship.bodyId) {
-          const body = state.bodies[ship.bodyId];
-
-          setPlayerBody(body);
-        }
-      }
-
-      setEntities(entities);
-      setBodies(state.bodies);
-    };
-
-    room.onStateChange(listener);
-
-    return () => room.onStateChange.remove(listener);
-  }, [client, room]);
-
-  useRender(
-    () => {
-      if (!playerBody) {
+    if (!object) {
+      if (isShip(entity)) {
+        object = await createShip(entity);
+      } else if (isTile(entity)) {
+        object = createTile(entity);
+      } else if (isBall(entity)) {
+        object = createBall(entity);
+      } else if (isBullet(entity)) {
+        object = createProjectile(entity);
+      } else {
         return;
       }
 
-      camera.position.set(
-        Math.lerp(camera.position.x, playerBody.x, 0.6),
-        Math.lerp(camera.position.y, playerBody.y, 0.6),
-        50,
-      );
-    },
-    false,
-    [playerBody, entities],
-  );
+      scene.add(object);
+      objectsByEntity.set(entity, object);
+    }
 
-  const objects = useMemo(
-    () =>
-      entities &&
-      entities.reduce(
-        (acc, entity) => {
-          const { id, bodyId } = entity;
+    if (isTile(entity)) {
+      ((object as Mesh).material as Material).opacity = entity.health / 100;
+    }
 
-          if (!bodyId || !bodies) {
-            return acc;
-          }
+    object.position.x = Math.lerp(object.position.x, entity.x, 0.45);
+    object.position.y = Math.lerp(object.position.y, entity.y, 0.45);
+    object.rotation.z = Math.lerp(object.rotation.z, entity.angle, 0.6);
+  }
 
-          const body = bodies[bodyId];
+  const onAdd = (entity: EntitySchema) => {
+    if (isBody(entity)) {
+      updatePhysicalEntity(entity);
+      entity.onChange = () => updatePhysicalEntity(entity);
+    }
+  };
+  const onRemove = (entity: EntitySchema) => {
+    const object = objectsByEntity.get(entity);
 
-          if (!body) {
-            return acc;
-          }
+    if (object) {
+      scene.remove(object);
+    }
 
-          if (isShip(entity)) {
-            acc.push(
-              <Ship
-                key={id}
-                body={body}
-                ship={entity}
-                showLabel={body !== playerBody}
-              />,
-            );
-          }
+    objectsByEntity.delete(entity);
+  };
 
-          if (isBall(entity)) {
-            acc.push(<Ball key={id} body={body} ball={entity} />);
-          }
+  Object.values(room.state.entities).forEach(onAdd);
 
-          if (isTile(entity)) {
-            acc.push(<Tile key={id} body={body} tile={entity} />);
-          }
+  room.state.entities.onAdd = onAdd;
+  room.state.entities.onRemove = onRemove;
 
-          if (isBullet(entity)) {
-            acc.push(<Bullet key={id} body={body} bullet={entity} />);
-          }
+  input.subscribe((key, value) => room.send(command(key, value)));
 
-          return acc;
-        },
-        [] as JSX.Element[],
-      ),
-    [playerBody, entities, bodies],
-  );
+  window.addEventListener("mousedown", e => {
+    const { x, y } = getMousePosition(e, camera);
 
-  return (
-    <Suspense fallback={null}>
-      <directionalLight
-        intensity={0.5}
-        position={[-50, -175, 100]}
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-      />
-      <ambientLight intensity={0.2} />
-      {objects}
-    </Suspense>
-  );
+    room.send(placeTile(x, y));
+  });
+
+  function onWindowResize() {
+    const { innerWidth, innerHeight } = window;
+
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(innerWidth, innerHeight);
+  }
+
+  window.addEventListener("resize", onWindowResize);
+
+  onWindowResize();
+
+  requestAnimationFrame(render);
 }
-
-const defaultCameraOptions = {
-  fov: 45,
-};
-
-const onCanvasCreated = ({ gl }: CanvasContext) => {
-  gl.shadowMap.enabled = true;
-  gl.shadowMap.type = PCFSoftShadowMap;
-};
 
 main();

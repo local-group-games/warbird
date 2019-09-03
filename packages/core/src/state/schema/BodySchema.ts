@@ -1,10 +1,9 @@
-import { type, Schema } from "@colyseus/schema";
+import { type } from "@colyseus/schema";
+import nanoid from "nanoid";
 import { Body, CollisionGroup } from "../model/Body";
-import nanoid = require("nanoid");
+import { EntitySchema } from "./EntitySchema";
 
-export class BodySchema extends Schema implements Body {
-  @type("string")
-  id: string = nanoid();
+export class BodySchema extends EntitySchema implements Body {
   @type("float32")
   x: number = 0;
   @type("float32")
@@ -26,12 +25,7 @@ export class BodySchema extends Schema implements Body {
   collisionGroup = CollisionGroup.Static;
   collisionMask =
     CollisionGroup.Static | CollisionGroup.Projectile | CollisionGroup.Vehicle;
-
-  constructor(options?: any) {
-    super();
-
-    if (options) {
-      Object.assign(this, options);
-    }
-  }
 }
+
+export const isBody = (entity: any): entity is BodySchema =>
+  typeof entity.x === "number";

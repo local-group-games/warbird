@@ -2,6 +2,7 @@ import { Client, Room } from "colyseus";
 import {
   BodySchema,
   BulletSchema,
+  Destructible,
   EntitySchema,
   GameMessage,
   GameMessageType,
@@ -11,12 +12,10 @@ import {
   isDestructible,
   isExpireable,
   P2PhysicsDriver,
-  PlayerSchema,
-  TileSchema,
-  ShipSchema,
-  Destructible,
   PlayerCommandPayload,
-  Projectile,
+  PlayerSchema,
+  ShipSchema,
+  TileSchema,
 } from "colyseus-test-core";
 import { World } from "p2";
 
@@ -56,9 +55,8 @@ function shipCanFire(
 
 export abstract class BaseRoom extends Room<GameStateSchema> {
   private physics: P2PhysicsDriver;
-  private entitiesToAdd = new Set<EntitySchema | [EntitySchema, BodySchema]>();
+  private entitiesToAdd = new Set<EntitySchema>();
   private entitiesToRemove = new Set<EntitySchema>();
-  private entitiesByBodyId = new WeakMap<BodySchema, EntitySchema>();
 
   onCreate(options: any) {
     const state = new GameStateSchema();
@@ -70,7 +68,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     world.defaultContactMaterial.restitution = 0.35;
 
     const physics = new P2PhysicsDriver({
-      state: state.bodies,
+      state: state.entities,
       world,
       onCollisionStart: this.onCollisionStart,
     });
@@ -81,10 +79,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     this.physics = physics;
   }
 
-  onCollisionStart = (a: BodySchema, b: BodySchema) => {
-    const entityA = this.entitiesByBodyId.get(a);
-    const entityB = this.entitiesByBodyId.get(b);
-
+  onCollisionStart = (entityA: BodySchema, entityB: BodySchema) => {
     let projectile: BulletSchema;
     let destructible: Destructible;
 
@@ -106,8 +101,8 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     }
   };
 
-  addEntity(entity: EntitySchema, body?: BodySchema) {
-    this.entitiesToAdd.add(body ? [entity, body] : entity);
+  addEntity(entity: EntitySchema) {
+    this.entitiesToAdd.add(entity);
   }
 
   removeEntity(entity: EntitySchema) {
@@ -116,10 +111,11 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
 
   onJoin(client: Client) {
     const { sessionId } = client;
-    const x = (Math.random() - 0.5) * -5;
-    const y = (Math.random() - 0.5) * -5;
     const ship = new ShipSchema();
-    const shipBody = ship.makeBody({ x, y });
+
+    ship.x = (Math.random() - 0.5) * -5;
+    ship.y = (Math.random() - 0.5) * -5;
+
     const player = new PlayerSchema();
 
     player.id = sessionId;
@@ -127,9 +123,8 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     player.name = "<player_name>";
     player.connected = true;
 
-    this.state.entities[ship.id] = ship;
     this.state.players[player.id] = player;
-    this.addEntity(ship, shipBody);
+    this.addEntity(ship);
   }
 
   onMessage(client: Client, message: GameMessage) {
@@ -146,25 +141,22 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
         const [x, y] = message[1].map(Math.round);
         const player: PlayerSchema = this.state.players[client.sessionId];
         const ship: ShipSchema = this.state.entities[player.shipId];
-        const body = this.state.bodies[ship.bodyId];
-        const tile = new TileSchema({
-          lifeTimeMs: 30 * 60 * 1000,
-        });
-        const tileBody = tile.makeBody({
-          x,
-          y,
-        });
+        const tile = new TileSchema();
 
-        const queryWidth = tileBody.width / 2 - 0.01;
-        const queryHeight = tileBody.height / 2 - 0.01;
+        tile.lifeTimeMs = 30 * 60 * 1000;
+        tile.x = x;
+        tile.y = y;
+
+        const queryWidth = tile.width / 2 - 0.01;
+        const queryHeight = tile.height / 2 - 0.01;
         const query = this.physics.query(x, y, x + queryWidth, y + queryHeight);
 
         if (
           query.length === 0 &&
-          Math.abs(body.x - x) < 5 &&
-          Math.abs(body.y - y) < 5
+          Math.abs(ship.x - tile.x) < 5 &&
+          Math.abs(ship.y - tile.y) < 5
         ) {
-          this.addEntity(tile, tileBody);
+          this.addEntity(tile);
         }
 
         break;
@@ -190,9 +182,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
       const ship: ShipSchema = this.state.entities[player.shipId];
 
       if (ship) {
-        const shipBody = this.state.bodies[ship.bodyId];
-
-        this.removeEntity(shipBody);
+        this.removeEntity(ship);
       }
 
       delete this.state.players[sessionId];
@@ -230,12 +220,6 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
         continue;
       }
 
-      const body: BodySchema = this.state.bodies[ship.bodyId];
-
-      if (!body) {
-        continue;
-      }
-
       if (command.thrustForward || command.thrustReverse) {
         const thrust = getShipThrust(command);
         const thrustCost =
@@ -244,21 +228,22 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
         if (ship.energy >= thrustCost) {
           ship.energy -= thrustCost;
 
-          this.physics.applyForceLocal(body, [0, thrust]);
+          this.physics.applyForceLocal(ship, [0, thrust]);
         }
       }
 
       if (command.turnLeft || command.turnRight) {
         const turn = getShipTurn(command);
 
-        this.physics.rotate(body, body.angle + turn);
+        this.physics.rotate(ship, ship.angle + turn);
       }
 
       if (shipCanFire(ship, command, now)) {
         const bullet = new BulletSchema();
-        const bulletBody = bullet.makeBody(getBulletOptions(body));
 
-        this.addEntity(bullet, bulletBody);
+        Object.assign(bullet, getBulletOptions(ship));
+
+        this.addEntity(bullet);
 
         ship.weapons[0].lastFireTime = now;
         ship.energy -= ship.weapons[0].energyCost;
@@ -270,34 +255,13 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
       );
     }
 
-    this.entitiesToAdd.forEach(op => {
-      let entity: EntitySchema;
-      let body: BodySchema | null = null;
-
-      if (Array.isArray(op)) {
-        [entity, body] = op;
-      } else {
-        entity = op;
-      }
-
+    this.entitiesToAdd.forEach(entity => {
       this.state.entities[entity.id] = entity;
-
-      if (body) {
-        this.state.bodies[body.id] = body;
-        this.entitiesByBodyId.set(body, entity);
-      }
     });
     this.entitiesToAdd.clear();
 
     this.entitiesToRemove.forEach(entity => {
-      const body = this.state.bodies[entity.bodyId];
-
       delete this.state.entities[entity.id];
-
-      if (body) {
-        delete this.state.bodies[body.id];
-        this.entitiesByBodyId.delete(body.id);
-      }
     });
     this.entitiesToRemove.clear();
 

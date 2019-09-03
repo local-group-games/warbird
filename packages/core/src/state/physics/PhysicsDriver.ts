@@ -1,13 +1,14 @@
 import { MapSchema } from "@colyseus/schema";
 import { ChangeTree } from "@colyseus/schema/lib/ChangeTree";
-import { Body as P2Body, Box, World, AABB } from "p2";
+import { AABB, Body as P2Body, Box, World } from "p2";
 import { Body } from "../model/Body";
+import { BodySchema, EntitySchema, isBody } from "../schema";
 import { syncBodyToSchema } from "./syncBody";
 
-type CollisionHandler = (a: Body, b: Body) => void;
+type CollisionHandler = (a: BodySchema, b: BodySchema) => void;
 
 type PhysicsDriverOptions = {
-  state: MapSchema<Body>;
+  state: MapSchema<EntitySchema>;
   onCollisionStart?: CollisionHandler;
   onCollisionEnd?: CollisionHandler;
 };
@@ -15,10 +16,10 @@ type PhysicsDriverOptions = {
 type P2PhysicsDriverOptions = PhysicsDriverOptions & { world: World };
 
 export class P2PhysicsDriver {
-  private state: MapSchema<Body>;
+  private state: MapSchema<EntitySchema>;
   private world: World;
-  private bodiesBySchemaId = new Map<string, P2Body>();
-  private schemaIdsByBody = new Map<P2Body, string>();
+  private p2BodiesBySchemaId = new Map<string, P2Body>();
+  private schemaIdsByP2Body = new Map<P2Body, string>();
   private onCollisionStart: CollisionHandler;
   private onCollisionEnd: CollisionHandler;
 
@@ -34,8 +35,8 @@ export class P2PhysicsDriver {
       "beginContact",
       (e: { bodyA: P2Body; bodyB: P2Body }) => {
         const { bodyA, bodyB } = e;
-        const idA = this.schemaIdsByBody.get(bodyA);
-        const idB = this.schemaIdsByBody.get(bodyB);
+        const idA = this.schemaIdsByP2Body.get(bodyA);
+        const idB = this.schemaIdsByP2Body.get(bodyB);
 
         if (!(idA && idB)) {
           console.warn(`Collision occurred between unregistered entities.`);
@@ -63,8 +64,8 @@ export class P2PhysicsDriver {
       "endContact",
       (e: { bodyA: P2Body; bodyB: P2Body }) => {
         // const { bodyA, bodyB } = e;
-        // const idA = this.schemaIdsByBody.get(bodyA);
-        // const idB = this.schemaIdsByBody.get(bodyB);
+        // const idA = this.schemaIdsByP2Body.get(bodyA);
+        // const idB = this.schemaIdsByP2Body.get(bodyB);
         // if (!(idA && idB)) {
         //   console.warn(`Collision occurred between unregistered entities.`);
         //   return;
@@ -80,20 +81,25 @@ export class P2PhysicsDriver {
 
     for (const schemaId of changes.changes) {
       const id = schemaId as string;
-      const schema: Body = this.state[id];
-      let body = this.bodiesBySchemaId.get(id);
+      const schema = this.state[id];
+
+      let body = this.p2BodiesBySchemaId.get(id);
 
       // Body removed
       if (!schema) {
-        this.bodiesBySchemaId.delete(id);
+        this.p2BodiesBySchemaId.delete(id);
 
         if (body) {
           this.world.removeBody(body);
-          this.schemaIdsByBody.delete(body);
+          this.schemaIdsByP2Body.delete(body);
         } else {
           console.warn(`Schema removed without body.`);
         }
 
+        continue;
+      }
+
+      if (!isBody(schema)) {
         continue;
       }
 
@@ -128,8 +134,8 @@ export class P2PhysicsDriver {
         body.addShape(shape);
 
         this.world.addBody(body);
-        this.bodiesBySchemaId.set(id, body);
-        this.schemaIdsByBody.set(body, schema.id);
+        this.p2BodiesBySchemaId.set(id, body);
+        this.schemaIdsByP2Body.set(body, schema.id);
       }
 
       body.wakeUp();
@@ -137,7 +143,7 @@ export class P2PhysicsDriver {
 
     this.world.step(1 / 60, deltaTime / 1000, 10);
 
-    this.bodiesBySchemaId.forEach((body, schemaId) => {
+    this.p2BodiesBySchemaId.forEach((body, schemaId) => {
       const schema = this.state[schemaId];
 
       if (schema) {
@@ -154,7 +160,7 @@ export class P2PhysicsDriver {
     const result = this.world.broadphase.aabbQuery(this.world, aabb);
 
     return result.map(body => {
-      const schemaId = this.schemaIdsByBody.get(body);
+      const schemaId = this.schemaIdsByP2Body.get(body);
 
       if (!schemaId) {
         throw new Error(`Could not resolve schema when querying.`);
@@ -171,7 +177,7 @@ export class P2PhysicsDriver {
     force: [number, number],
     point?: [number, number],
   ) {
-    const body = this.bodiesBySchemaId.get(schema.id);
+    const body = this.p2BodiesBySchemaId.get(schema.id);
 
     if (!body) {
       console.warn(`Attempted to apply force to an unregistered body.`);
@@ -182,7 +188,7 @@ export class P2PhysicsDriver {
   }
 
   rotate(schema: Body, angle: number) {
-    const body = this.bodiesBySchemaId.get(schema.id);
+    const body = this.p2BodiesBySchemaId.get(schema.id);
 
     if (!body) {
       console.warn(`Attempted to rotate an unregistered body.`);
