@@ -10,3 +10,4 @@ export * from "./Projectile";
 export * from "./Ship";
 export * from "./Tile";
 export * from "./WeaponSystem";
+export * from "./Wreckage";

@@ -16,6 +16,9 @@ import {
   PlayerSchema,
   ShipSchema,
   TileSchema,
+  WreckageSchema,
+  isShip,
+  isWreckage,
 } from "colyseus-test-core";
 import { World } from "p2";
 
@@ -53,6 +56,21 @@ function shipCanFire(
   );
 }
 
+function detect<A, B>(
+  predicateA: (entity: any) => entity is A,
+  predicateB: (entity: any) => entity is B,
+  entityA: BodySchema,
+  entityB: BodySchema,
+): [A, B] | [null, null] {
+  if (predicateA(entityA) && predicateB(entityB)) {
+    return [entityA, entityB];
+  } else if (predicateA(entityB) && predicateB(entityA)) {
+    return [entityB, entityA];
+  }
+
+  return [null, null];
+}
+
 export abstract class BaseRoom extends Room<GameStateSchema> {
   private physics: P2PhysicsDriver;
   private entitiesToAdd = new Set<EntitySchema>();
@@ -79,25 +97,22 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     this.physics = physics;
   }
 
-  onCollisionStart = (entityA: BodySchema, entityB: BodySchema) => {
-    let projectile: BulletSchema;
-    let destructible: Destructible;
-
-    if (isBullet(entityA) && isDestructible(entityB) && !entityB.invulnerable) {
-      projectile = entityA;
-      destructible = entityB;
-    } else if (
-      isBullet(entityB) &&
-      isDestructible(entityA) &&
-      !entityA.invulnerable
-    ) {
-      projectile = entityB;
-      destructible = entityA;
-    }
+  onCollisionStart = (a: BodySchema, b: BodySchema) => {
+    const [projectile, destructible] = detect(isBullet, isDestructible, a, b);
 
     if (projectile && destructible) {
-      destructible.health -= PROJECTILE_BASE_DAMAGE;
-      this.removeEntity(projectile);
+      if (!destructible.invulnerable) {
+        destructible.health -= PROJECTILE_BASE_DAMAGE;
+        this.removeEntity(projectile);
+      }
+
+      return;
+    }
+
+    const [wreckage, ship] = detect(isWreckage, isShip, a, b);
+
+    if (wreckage && ship) {
+      this.removeEntity(wreckage);
     }
   };
 
@@ -107,6 +122,26 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
 
   removeEntity(entity: EntitySchema) {
     this.entitiesToRemove.add(entity);
+  }
+
+  spawn(player: PlayerSchema) {
+    const ship = new ShipSchema();
+
+    ship.x = (Math.random() - 0.5) * -5;
+    ship.y = (Math.random() - 0.5) * -5;
+
+    player.shipId = ship.id;
+
+    this.addEntity(ship);
+  }
+
+  spawnWreckage(ship: ShipSchema) {
+    const wreckage = new WreckageSchema();
+
+    wreckage.x = ship.x;
+    wreckage.y = ship.y;
+
+    this.addEntity(wreckage);
   }
 
   onJoin(client: Client) {
@@ -119,12 +154,11 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     const player = new PlayerSchema();
 
     player.id = sessionId;
-    player.shipId = ship.id;
     player.name = "<player_name>";
     player.connected = true;
 
     this.state.players[player.id] = player;
-    this.addEntity(ship);
+    this.spawn(player);
   }
 
   onMessage(client: Client, message: GameMessage) {
@@ -201,6 +235,22 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
         (isDestructible(entity) && entity.health <= 0)
       ) {
         this.removeEntity(entity);
+
+        if (isShip(entity)) {
+          this.spawnWreckage(entity);
+
+          for (const clientId in this.clients) {
+            const client = this.clients[clientId];
+            const player = this.state.players[client.sessionId];
+            const ship = this.state.entities[player.shipId];
+
+            if (ship === entity) {
+              setTimeout(() => {
+                this.spawn(player);
+              }, 2000);
+            }
+          }
+        }
       }
     }
   }

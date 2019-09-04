@@ -16,6 +16,11 @@ export class ShipSchema extends BodySchema implements Ship {
   @type([WeaponSchema])
   weapons = new ArraySchema<WeaponSchema>(new WeaponSchema());
 
+  @type("uint8")
+  health = 100;
+  @type("boolean")
+  invulnerable = false;
+
   mass = 2;
   width = 1;
   height = 2;

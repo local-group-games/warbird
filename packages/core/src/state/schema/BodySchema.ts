@@ -24,6 +24,7 @@ export class BodySchema extends EntitySchema implements Body {
   collisionGroup = CollisionGroup.Static;
   collisionMask =
     CollisionGroup.Static | CollisionGroup.Projectile | CollisionGroup.Vehicle;
+  sensor = false;
 }
 
 export const isBody = (entity: any): entity is BodySchema =>

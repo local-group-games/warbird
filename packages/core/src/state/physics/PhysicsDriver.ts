@@ -63,14 +63,28 @@ export class P2PhysicsDriver {
     world.on(
       "endContact",
       (e: { bodyA: P2Body; bodyB: P2Body }) => {
-        // const { bodyA, bodyB } = e;
-        // const idA = this.schemaIdsByP2Body.get(bodyA);
-        // const idB = this.schemaIdsByP2Body.get(bodyB);
-        // if (!(idA && idB)) {
-        //   console.warn(`Collision occurred between unregistered entities.`);
-        //   return;
-        // }
-        // this.onCollisionEnd(this.state[idA], this.state[idB]);
+        const { bodyA, bodyB } = e;
+        const idA = this.schemaIdsByP2Body.get(bodyA);
+        const idB = this.schemaIdsByP2Body.get(bodyB);
+
+        if (!(idA && idB)) {
+          console.warn(`Collision occurred between unregistered entities.`);
+          return;
+        }
+
+        const a = this.state[idA];
+        const b = this.state[idB];
+
+        if (!(a && b)) {
+          console.warn(
+            `Cannot trigger collision handler for entity ${
+              a ? idB : idA
+            } because it has been removed.`,
+          );
+          return;
+        }
+
+        this.onCollisionEnd(a, b);
       },
       null,
     );
@@ -117,11 +131,13 @@ export class P2PhysicsDriver {
           collisionMask,
           angularDamping,
           damping,
+          sensor,
         } = schema;
         const shape = new Box({ width, height });
 
         shape.collisionGroup = collisionGroup;
         shape.collisionMask = collisionMask;
+        shape.sensor = sensor;
 
         body = new P2Body({
           position: [x, y],

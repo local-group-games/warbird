@@ -20,4 +20,5 @@ export interface Body {
   fixedRotation: boolean;
   collisionGroup: CollisionGroup;
   collisionMask: number;
+  sensor: boolean;
 }

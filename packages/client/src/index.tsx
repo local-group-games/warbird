@@ -10,26 +10,32 @@ import {
   isTile,
   placeTile,
   Player,
+  isWreckage,
 } from "colyseus-test-core";
 import { Client, Room } from "colyseus.js";
 import {
   AmbientLight,
   DirectionalLight,
+  Material,
   Math,
+  Mesh,
   Object3D,
   PCFSoftShadowMap,
   PerspectiveCamera,
   Scene,
   WebGLRenderer,
-  Mesh,
-  Material,
 } from "three";
+import { createExplosion } from "./animations/explosion";
 import { getMousePosition } from "./helpers/getMousePosition";
 import { createInputListener } from "./input";
 import { createBall } from "./objects/ball";
 import { createProjectile } from "./objects/projectile";
 import { createShip } from "./objects/ship";
 import { createTile } from "./objects/tile";
+import { createWreckage } from "./objects/wreckage";
+import { Animation } from "./types";
+
+const explosionDuration = 1000;
 
 const input = createInputListener({
   KeyW: "thrustForward",
@@ -113,6 +119,7 @@ async function main() {
       window.location.hostname,
     )}`,
   );
+  const animations = new Set<Animation>();
 
   renderer.setClearAlpha(0);
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -130,6 +137,7 @@ async function main() {
 
   function render() {
     const player: Player = room.state.players[room.sessionId];
+    const now = performance.now();
 
     objectsByEntity.forEach((object, entity: BodySchema) => {
       object.position.set(
@@ -167,6 +175,15 @@ async function main() {
       }
     }
 
+    animations.forEach(animation => {
+      animation.update();
+
+      if (now - animation.start >= animation.duration) {
+        animations.delete(animation);
+        scene.remove(animation.object);
+      }
+    });
+
     renderer.render(scene, camera);
     requestAnimationFrame(render);
   }
@@ -193,6 +210,8 @@ async function main() {
         object = createBall(entity);
       } else if (isBullet(entity)) {
         object = createProjectile(entity);
+      } else if (isWreckage(entity)) {
+        object = createWreckage(entity);
       } else {
         throw new Error(
           `Entity ${(entity as EntitySchema).type} not supported.`,
@@ -220,6 +239,13 @@ async function main() {
       }
 
       objectsByEntity.delete(entity);
+    }
+
+    if (isShip(entity)) {
+      const explosion = createExplosion(entity.x, entity.y, explosionDuration);
+
+      animations.add(explosion);
+      scene.add(explosion.object);
     }
   };
 

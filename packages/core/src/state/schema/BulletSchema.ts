@@ -13,6 +13,7 @@ export class BulletSchema extends BodySchema implements Projectile {
   height = 0.3;
   collisionGroup = CollisionGroup.Projectile;
   collisionMask = CollisionGroup.Static | CollisionGroup.Vehicle;
+  fixedRotation = true;
 }
 
 export const isBullet = (entity: any): entity is BulletSchema =>
