@@ -22,7 +22,8 @@ jobs:
 
       - name:
         uses: actions/gcloud/cli@master
-        args: ["auth", "configure-docker", "--quiet"]
+        with:
+          args: ["auth", "configure-docker", "--quiet"]
 
       - name: Push the Client Docker image
         run: docker push gcr.io/osmium-250702/osmium-client:$(git describe --abbrev=0 --tags)
