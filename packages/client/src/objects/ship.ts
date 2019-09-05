@@ -1,6 +1,8 @@
-import { Ship } from "colyseus-test-core";
+import { ShipSchema } from "colyseus-test-core";
 import { GLTFLoader, GLTF } from "three/examples/jsm/loaders/GLTFLoader";
-import { Matrix4 } from "three";
+import { Matrix4, Math as ThreeMath } from "three";
+import { RenderObject } from "../types";
+import { interpolateEntity } from "../helpers/interpolateEntity";
 
 const loader = new GLTFLoader();
 
@@ -9,7 +11,7 @@ const loadResource = (file: string) =>
     loader.load(file, resolve, () => {}, reject),
   );
 
-export async function createShip(ship: Ship) {
+export async function createShip(ship: ShipSchema): Promise<RenderObject> {
   const gltf = await loadResource("/assets/models/ship/scene.gltf");
   const { scene: model } = gltf;
 
@@ -23,5 +25,8 @@ export async function createShip(ship: Ship) {
 
   model.applyMatrix(new Matrix4().makeTranslation(0, -2, 0));
 
-  return model;
+  return {
+    object: model,
+    update: () => interpolateEntity(ship, model),
+  };
 }

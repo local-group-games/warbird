@@ -33,7 +33,7 @@ import { createProjectile } from "./objects/projectile";
 import { createShip } from "./objects/ship";
 import { createTile } from "./objects/tile";
 import { createWreckage } from "./objects/wreckage";
-import { Animation } from "./types";
+import { Animation, RenderObject } from "./types";
 
 const explosionDuration = 1000;
 
@@ -135,32 +135,21 @@ async function main() {
   scene.add(ambientLight);
   scene.add(directionalLight);
 
-  function render() {
+  let previousTime = 0;
+
+  function render(time: number) {
     const player: Player = room.state.players[room.sessionId];
     const now = performance.now();
 
-    objectsByEntity.forEach((object, entity: BodySchema) => {
-      object.position.set(
-        Math.lerp(object.position.x, entity.x, 0.6),
-        Math.lerp(object.position.y, entity.y, 0.6),
-        0,
-      );
-      object.rotation.set(
-        0,
-        0,
-        Math.lerp(object.rotation.z, entity.angle, 0.75),
-      );
+    if (!previousTime) {
+      previousTime = time;
+    }
 
-      if (isTile(entity)) {
-        const material = (object as Mesh).material as Material;
+    const dt = time - previousTime;
 
-        material.opacity = Math.lerp(
-          material.opacity,
-          entity.health / 100,
-          0.5,
-        );
-      }
-    });
+    previousTime = time;
+
+    objectsByEntity.forEach(object => object.update(dt));
 
     if (player && player.shipId) {
       const ship = room.state.entities[player.shipId];
@@ -169,14 +158,14 @@ async function main() {
         const object = objectsByEntity.get(ship);
 
         if (object) {
-          camera.position.x = object.position.x;
-          camera.position.y = object.position.y;
+          camera.position.x = object.object.position.x;
+          camera.position.y = object.object.position.y;
         }
       }
     }
 
     animations.forEach(animation => {
-      animation.update();
+      animation.update(dt);
 
       if (now - animation.start >= animation.duration) {
         animations.delete(animation);
@@ -196,7 +185,7 @@ async function main() {
     preload(),
   ]);
 
-  const objectsByEntity = new Map<BodySchema, Object3D>();
+  const objectsByEntity = new Map<BodySchema, RenderObject>();
 
   async function registerBody(entity: BodySchema) {
     let object = objectsByEntity.get(entity);
@@ -218,7 +207,7 @@ async function main() {
         );
       }
 
-      scene.add(object);
+      scene.add(object.object);
       objectsByEntity.set(entity, object);
     }
 
@@ -235,7 +224,7 @@ async function main() {
       const object = objectsByEntity.get(entity);
 
       if (object) {
-        scene.remove(object);
+        scene.remove(object.object);
       }
 
       objectsByEntity.delete(entity);

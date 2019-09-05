@@ -1,7 +1,9 @@
-import { Ball } from "colyseus-test-core";
+import { BallSchema } from "colyseus-test-core";
 import { Mesh, MeshStandardMaterial, SphereGeometry } from "three";
+import { interpolateEntity } from "../helpers/interpolateEntity";
+import { RenderObject } from "../types";
 
-export function createBall(ball: Ball) {
+export function createBall(ball: BallSchema): RenderObject {
   const geometry = new SphereGeometry(ball.width / 2, 10, 10);
   const material = new MeshStandardMaterial({
     color: "#fff",
@@ -14,5 +16,8 @@ export function createBall(ball: Ball) {
   material.roughness = 0.7;
   material.wireframe = true;
 
-  return mesh;
+  return {
+    object: mesh,
+    update: () => interpolateEntity(ball, mesh),
+  };
 }
