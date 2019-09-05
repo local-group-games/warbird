@@ -32,7 +32,7 @@ jobs:
       - name: Load GKE kube credentials
         uses: actions/gcloud/cli@master
         with:
-          args: "container clusters get-credentials osmium-cluster --zone us-east1-b --project osmium-250702",
+          args: "container clusters get-credentials osmium-cluster --zone us-east1-b --project osmium-250702"
 
       - name: Deploy to GKE
         uses: docker://gcr.io/cloud-builders/kubectl
