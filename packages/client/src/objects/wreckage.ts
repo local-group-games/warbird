@@ -8,7 +8,7 @@ export function createWreckage(tile: Wreckage): RenderObject {
   const geometry = new OctahedronGeometry(tile.width / 2, 0);
   const material = new MeshStandardMaterial({
     color: 0xefdd22,
-    emissive: 0xffff00,
+    emissive: 0x44ff00,
     emissiveIntensity: 0.5,
   });
   const mesh = new Mesh(geometry, material);

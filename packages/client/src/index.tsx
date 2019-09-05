@@ -108,7 +108,7 @@ async function main() {
   const ambientLight = new AmbientLight(0xffffff, 0.2);
   const directionalLight = new DirectionalLight(0xffffff, 0.5);
   const scene = new Scene();
-  const camera = new PerspectiveCamera(45);
+  const camera = new PerspectiveCamera(30);
   const client = new Client(
     `ws://${(window as any).APP_CONFIGURATION.SERVER_HOST.replace(
       "localhost",
@@ -122,7 +122,7 @@ async function main() {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFSoftShadowMap;
 
-  camera.position.set(0, 0, 50);
+  camera.position.set(0, 0, 75);
 
   directionalLight.position.set(-5, -15, 10);
   directionalLight.shadowMapWidth = 2048;
