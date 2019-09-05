@@ -17,7 +17,6 @@
     "react-app-rewired": "^2.1.3",
     "react-dom": "^16.9.0",
     "react-scripts": "^3.1.1",
-    "scheduler": "^0.15.0",
     "three": "^0.108.0"
   },
   "browserslist": {
@@ -31,8 +30,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@types/scheduler": "^0.12.1"
   }
 }
