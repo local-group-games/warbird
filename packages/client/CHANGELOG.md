@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.6](https://github.com/3mcd/colyseus-test/compare/v0.3.5...v0.3.6) (2019-09-05)
+
+**Note:** Version bump only for package colyseus-test-client
+
+
+
+
+
 ## [0.3.5](https://github.com/3mcd/colyseus-test/compare/v0.3.4...v0.3.5) (2019-09-05)
 
 **Note:** Version bump only for package colyseus-test-client
