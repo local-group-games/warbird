@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.1](https://github.com/3mcd/colyseus-test/compare/v0.3.0...v0.3.1) (2019-09-05)
+
+
+### Bug Fixes
+
+* **ci:** make args a string ([7a29089](https://github.com/3mcd/colyseus-test/commit/7a29089))
+
+
+
+
+
 # [0.3.0](https://github.com/3mcd/colyseus-test/compare/v0.2.0...v0.3.0) (2019-09-05)
 
 
