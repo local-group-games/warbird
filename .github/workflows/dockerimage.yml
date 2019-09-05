@@ -1,0 +1,16 @@
+name: Docker Image CI
+
+on: [push]
+
+jobs:
+
+  build:
+ 
+    runs-on: ubuntu-latest
+ 
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build the Client Docker image
+      run: docker build . --file ./docker/prod-client.Dockerfile --tag colyseus-test-client:$(date +%s)
+    - name: Build the Server Docker image
+      run: docker build . --file ./docker/prod-server.Dockerfile --tag colyseus-test-server:$(date +%s)
