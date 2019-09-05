@@ -1,0 +1,45 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+# 0.2.0 (2019-09-05)
+
+
+### Bug Fixes
+
+* fix memory leak in collision handler ([3447f8c](https://github.com/3mcd/colyseus-test/commit/3447f8c))
+* trailing comma in deploy.yml ([5375cc0](https://github.com/3mcd/colyseus-test/commit/5375cc0))
+
+
+### Features
+
+* add baseline docs and change default server port ([73e78fb](https://github.com/3mcd/colyseus-test/commit/73e78fb))
+* add basic client input ([ba80039](https://github.com/3mcd/colyseus-test/commit/ba80039))
+* add collisions; tile placement and destruction ([8d34410](https://github.com/3mcd/colyseus-test/commit/8d34410))
+* add fonts; add ship labels ([8687858](https://github.com/3mcd/colyseus-test/commit/8687858))
+* add wall ([c664019](https://github.com/3mcd/colyseus-test/commit/c664019))
+* adjust fov ([7b53639](https://github.com/3mcd/colyseus-test/commit/7b53639))
+* basic user input ([bee536b](https://github.com/3mcd/colyseus-test/commit/bee536b))
+* bullets ([03c3543](https://github.com/3mcd/colyseus-test/commit/03c3543))
+* change model ([d22014d](https://github.com/3mcd/colyseus-test/commit/d22014d))
+* correct lerping ([bed464d](https://github.com/3mcd/colyseus-test/commit/bed464d))
+* destructible block improvements ([8f9ffbe](https://github.com/3mcd/colyseus-test/commit/8f9ffbe))
+* device pixel ratio ([37c7c45](https://github.com/3mcd/colyseus-test/commit/37c7c45))
+* fix proxy nginx ([150e8f4](https://github.com/3mcd/colyseus-test/commit/150e8f4))
+* fixed angle lerp ([da7cc13](https://github.com/3mcd/colyseus-test/commit/da7cc13))
+* github actions gke deployment ([edada1d](https://github.com/3mcd/colyseus-test/commit/edada1d))
+* improve bullet physics ([6977cfc](https://github.com/3mcd/colyseus-test/commit/6977cfc))
+* improve ship box ([fda95ca](https://github.com/3mcd/colyseus-test/commit/fda95ca))
+* improved physics ([3b7bd58](https://github.com/3mcd/colyseus-test/commit/3b7bd58))
+* minor refactor ([7ad5871](https://github.com/3mcd/colyseus-test/commit/7ad5871))
+* pickups ([8c8d8eb](https://github.com/3mcd/colyseus-test/commit/8c8d8eb))
+* reconnect ([3db2022](https://github.com/3mcd/colyseus-test/commit/3db2022))
+* remove texture from ship; change camera perspective ([8a7c83e](https://github.com/3mcd/colyseus-test/commit/8a7c83e))
+* render cleanup ([788c27a](https://github.com/3mcd/colyseus-test/commit/788c27a))
+* rewrite renderer ([51f861b](https://github.com/3mcd/colyseus-test/commit/51f861b))
+* schema improvements ([9f27b26](https://github.com/3mcd/colyseus-test/commit/9f27b26))
+* send user inputs as they occur ([7e20d93](https://github.com/3mcd/colyseus-test/commit/7e20d93))
+* smoother input ([110cc40](https://github.com/3mcd/colyseus-test/commit/110cc40))
+* walls ([989b8c1](https://github.com/3mcd/colyseus-test/commit/989b8c1))
+* wip ([3aa6f0d](https://github.com/3mcd/colyseus-test/commit/3aa6f0d))
