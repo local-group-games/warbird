@@ -37,4 +37,5 @@ jobs:
 
       - name: Deploy to GKE
         uses: docker://gcr.io/cloud-builders/kubectl
-        run: kubectl apply -f ./deploy
+        with:
+          args: "apply -f ./deploy"
