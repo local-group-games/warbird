@@ -1,8 +1,8 @@
 import { ShipSchema } from "colyseus-test-core";
-import { GLTFLoader, GLTF } from "three/examples/jsm/loaders/GLTFLoader";
-import { Matrix4, Math as ThreeMath } from "three";
-import { RenderObject } from "../types";
+import { Matrix4 } from "three";
+import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { interpolateEntity } from "../helpers/interpolateEntity";
+import { RenderObject } from "../types";
 
 const loader = new GLTFLoader();
 

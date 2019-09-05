@@ -1,5 +1,5 @@
 import { Tile } from "colyseus-test-core";
-import { BoxGeometry, Mesh, MeshStandardMaterial, Material, Math } from "three";
+import { BoxGeometry, Material, Math, Mesh, MeshStandardMaterial } from "three";
 import { RenderObject } from "../types";
 
 export function createTile(tile: Tile): RenderObject {

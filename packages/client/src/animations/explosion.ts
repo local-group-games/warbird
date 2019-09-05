@@ -1,10 +1,10 @@
 import { Geometry, Vector3, Points, PointsMaterial } from "three";
 import { Animation } from "../types";
 
-const speed = 0.8;
-const count = 85;
-const size = 0.08;
-const color = 0xffffff;
+const speed = 1;
+const count = 100;
+const size = 0.12;
+const color = 0xffffdd;
 
 export function createExplosion(
   x: number,
@@ -38,6 +38,8 @@ export function createExplosion(
     transparent: true,
   });
   const object = new Points(geometry, material);
+
+  object.renderOrder = -1;
 
   return {
     object,

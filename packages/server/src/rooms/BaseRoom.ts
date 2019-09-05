@@ -11,65 +11,26 @@ import {
   isBullet,
   isDestructible,
   isExpireable,
+  isShip,
+  isWreckage,
   P2PhysicsDriver,
-  PlayerCommandPayload,
   PlayerSchema,
   ShipSchema,
   TileSchema,
   WreckageSchema,
-  isShip,
-  isWreckage,
 } from "colyseus-test-core";
 import { World } from "p2";
+import { detect } from "../helpers/detect";
+import { getShipThrust } from "../helpers/getShipThrust";
+import { getShipTurn } from "../helpers/getShipTurn";
+import { shipCanFire } from "../helpers/shipCanFire";
 
-const SHIP_BASE_THRUST = 10;
-const SHIP_AFTERBURNER_THRUST_MODIFIER = 2;
-const SHIP_BASE_TURN = 0.06;
+const PLAYER_SPAWN_TIMEOUT = 2000;
+
 const SHIP_ENERGY_PER_S = 20;
 const SHIP_ENERGY_COST_PER_THRUST_PER_S = 2;
 
 const PROJECTILE_BASE_DAMAGE = 25;
-
-function getShipThrust(command: PlayerCommandPayload) {
-  return (
-    (Number(command.thrustForward) - Number(command.thrustReverse)) *
-    SHIP_BASE_THRUST *
-    (command.afterburners ? SHIP_AFTERBURNER_THRUST_MODIFIER : 1)
-  );
-}
-
-function getShipTurn(command: PlayerCommandPayload) {
-  return (
-    (Number(command.turnLeft) - Number(command.turnRight)) * SHIP_BASE_TURN
-  );
-}
-
-function shipCanFire(
-  ship: ShipSchema,
-  command: PlayerCommandPayload,
-  now: number,
-) {
-  return (
-    command.fire &&
-    ship.energy >= ship.weapons[0].energyCost &&
-    now - ship.weapons[0].lastFireTime >= ship.weapons[0].fireRate * 100
-  );
-}
-
-function detect<A, B>(
-  predicateA: (entity: any) => entity is A,
-  predicateB: (entity: any) => entity is B,
-  entityA: BodySchema,
-  entityB: BodySchema,
-): [A, B] | [null, null] {
-  if (predicateA(entityA) && predicateB(entityB)) {
-    return [entityA, entityB];
-  } else if (predicateA(entityB) && predicateB(entityA)) {
-    return [entityB, entityA];
-  }
-
-  return [null, null];
-}
 
 export abstract class BaseRoom extends Room<GameStateSchema> {
   private physics: P2PhysicsDriver;
@@ -97,23 +58,29 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     this.physics = physics;
   }
 
-  onCollisionStart = (a: BodySchema, b: BodySchema) => {
-    const [projectile, destructible] = detect(isBullet, isDestructible, a, b);
-
-    if (projectile && destructible) {
-      if (!destructible.invulnerable) {
-        destructible.health -= PROJECTILE_BASE_DAMAGE;
-        this.removeEntity(projectile);
-      }
-
+  onProjectileHit = (bullet: BulletSchema, destructible: Destructible) => {
+    if (destructible.invulnerable) {
       return;
     }
 
-    const [wreckage, ship] = detect(isWreckage, isShip, a, b);
+    this.removeEntity(bullet);
 
-    if (wreckage && ship) {
-      this.removeEntity(wreckage);
+    destructible.health -= PROJECTILE_BASE_DAMAGE;
+  };
+
+  onWreckageOverlap = (wreckage: WreckageSchema, ship: ShipSchema) => {
+    const player = this.findPlayerByShip(ship);
+
+    this.removeEntity(wreckage);
+
+    if (player) {
+      player.scrap += 3;
     }
+  };
+
+  onCollisionStart = (a: BodySchema, b: BodySchema) => {
+    detect(isBullet, isDestructible, a, b, this.onProjectileHit);
+    detect(isWreckage, isShip, a, b, this.onWreckageOverlap);
   };
 
   addEntity(entity: EntitySchema) {
@@ -174,6 +141,11 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
       case GameMessageType.PlaceTile: {
         const [x, y] = message[1].map(Math.round);
         const player: PlayerSchema = this.state.players[client.sessionId];
+
+        if (player.scrap <= 0) {
+          break;
+        }
+
         const ship: ShipSchema = this.state.entities[player.shipId];
         const tile = new TileSchema();
 
@@ -191,6 +163,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
           Math.abs(ship.y - tile.y) < 5
         ) {
           this.addEntity(tile);
+          player.scrap -= 1;
         }
 
         break;
@@ -223,6 +196,20 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     }
   }
 
+  findPlayerByShip(ship: ShipSchema) {
+    for (const clientId in this.clients) {
+      const client = this.clients[clientId];
+      const player = this.state.players[client.sessionId];
+      const playerShip = this.state.entities[player.shipId];
+
+      if (ship === playerShip) {
+        return player;
+      }
+    }
+
+    return null;
+  }
+
   prune() {
     const now = Date.now();
 
@@ -239,16 +226,10 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
         if (isShip(entity)) {
           this.spawnWreckage(entity);
 
-          for (const clientId in this.clients) {
-            const client = this.clients[clientId];
-            const player = this.state.players[client.sessionId];
-            const ship = this.state.entities[player.shipId];
+          const player = this.findPlayerByShip(entity);
 
-            if (ship === entity) {
-              setTimeout(() => {
-                this.spawn(player);
-              }, 2000);
-            }
+          if (player) {
+            setTimeout(() => this.spawn(player), PLAYER_SPAWN_TIMEOUT);
           }
         }
       }
@@ -278,7 +259,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
         if (ship.energy >= thrustCost) {
           ship.energy -= thrustCost;
 
-          this.physics.applyForceLocal(ship, [0, thrust]);
+          this.physics.applyForceLocal(ship, 0, thrust);
         }
       }
 

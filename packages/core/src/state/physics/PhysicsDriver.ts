@@ -16,6 +16,9 @@ type PhysicsDriverOptions = {
 type P2PhysicsDriverOptions = PhysicsDriverOptions & { world: World };
 
 export class P2PhysicsDriver {
+  static FORCE: [number, number] = [0, 0];
+  static LOCAL_POINT: [number, number] = [0, 0];
+
   private state: MapSchema<EntitySchema>;
   private world: World;
   private p2BodiesBySchemaId = new Map<string, P2Body>();
@@ -190,8 +193,10 @@ export class P2PhysicsDriver {
 
   applyForceLocal(
     schema: Body,
-    force: [number, number],
-    point?: [number, number],
+    forceX: number = 0,
+    forceY: number = 0,
+    pointX: number = 0,
+    pointY: number = 0,
   ) {
     const body = this.p2BodiesBySchemaId.get(schema.id);
 
@@ -200,7 +205,12 @@ export class P2PhysicsDriver {
       return;
     }
 
-    body.applyForceLocal(force, point);
+    P2PhysicsDriver.FORCE[0] = forceX;
+    P2PhysicsDriver.FORCE[1] = forceY;
+    P2PhysicsDriver.LOCAL_POINT[0] = pointX;
+    P2PhysicsDriver.LOCAL_POINT[1] = pointY;
+
+    body.applyForceLocal(P2PhysicsDriver.FORCE, P2PhysicsDriver.LOCAL_POINT);
   }
 
   rotate(schema: Body, angle: number) {

@@ -12,6 +12,8 @@ export class PlayerSchema extends Schema implements Player {
   connected: boolean = false;
   @type("string")
   shipId: string | null = null;
+  @type("int16")
+  scrap: number = 0;
 
   command: PlayerCommandPayload = {
     thrustForward: false,

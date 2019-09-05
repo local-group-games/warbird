@@ -1,10 +1,5 @@
 import { Wreckage } from "colyseus-test-core";
-import {
-  BoxGeometry,
-  Mesh,
-  MeshStandardMaterial,
-  OctahedronGeometry,
-} from "three";
+import { Mesh, MeshStandardMaterial, OctahedronGeometry } from "three";
 import { RenderObject } from "../types";
 
 const ROTATION_PER_MS = 0.0005;

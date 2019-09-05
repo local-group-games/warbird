@@ -8,18 +8,14 @@ import {
   isBullet,
   isShip,
   isTile,
+  isWreckage,
   placeTile,
   Player,
-  isWreckage,
 } from "colyseus-test-core";
 import { Client, Room } from "colyseus.js";
 import {
   AmbientLight,
   DirectionalLight,
-  Material,
-  Math,
-  Mesh,
-  Object3D,
   PCFSoftShadowMap,
   PerspectiveCamera,
   Scene,
@@ -35,7 +31,7 @@ import { createTile } from "./objects/tile";
 import { createWreckage } from "./objects/wreckage";
 import { Animation, RenderObject } from "./types";
 
-const explosionDuration = 1000;
+const explosionDuration = 500;
 
 const input = createInputListener({
   KeyW: "thrustForward",
