@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      # - name: Build the Client Docker image
-      #   run: docker build -f ./docker/prod-client.Dockerfile -t gcr.io/osmium-250702/osmium-client:$(git describe --abbrev=0 --tags) .
+      - name: Build the Client Docker image
+        run: docker build -f ./docker/prod-client.Dockerfile -t gcr.io/osmium-250702/osmium-client:$(git describe --abbrev=0 --tags) .
 
       - name: Build the Server Docker image
         run: docker build -f ./docker/prod-server.Dockerfile -t gcr.io/osmium-250702/osmium-server:$(git describe --abbrev=0 --tags) .
@@ -26,8 +26,10 @@ jobs:
         with:
           args: "auth configure-docker --quiet"
 
-      # - name: Push the Client Docker image
-      #   run: cat ~/.docker/config.json && docker push gcr.io/osmium-250702/osmium-client:$(git describe --abbrev=0 --tags)
+      - name: Push the Client Docker image
+        uses: actions/gcloud/cli@master
+        with:
+          args: "--verbosity=error docker -- push gcr.io/osmium-250702/osmium-client:$(git describe --abbrev=0 --tags)"
 
       - name: Push the Server Docker image
         uses: actions/gcloud/cli@master
@@ -41,5 +43,8 @@ jobs:
 
       - name: Deploy to GKE
         uses: docker://gcr.io/cloud-builders/kubectl
+        env:
+          CLOUDSDK_COMPUTE_ZONE: us-east1-b
+          CLOUDSDK_CONTAINER_CLUSTER: osmium-cluster
         with:
           args: "apply -f ./deploy"
