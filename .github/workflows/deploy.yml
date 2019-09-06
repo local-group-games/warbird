@@ -30,7 +30,9 @@ jobs:
       #   run: cat ~/.docker/config.json && docker push gcr.io/osmium-250702/osmium-client:$(git describe --abbrev=0 --tags)
 
       - name: Push the Server Docker image
-        run: cat ~/.docker/config.json && docker push gcr.io/osmium-250702/osmium-server:$(git describe --abbrev=0 --tags)
+        uses: actions/gcloud/cli@master
+        with:
+          args: "--verbosity=error docker -- push gcr.io/osmium-250702/osmium-server:$(git describe --abbrev=0 --tags)"
 
       - name: Load GKE kube credentials
         uses: actions/gcloud/cli@master
