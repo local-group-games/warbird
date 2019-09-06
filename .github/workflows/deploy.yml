@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-
       # - name: Build the Client Docker image
       #   run: docker build -f ./docker/prod-client.Dockerfile -t gcr.io/osmium-250702/osmium-client:$(git describe --abbrev=0 --tags) .
 
@@ -28,14 +27,10 @@ jobs:
           args: "auth configure-docker --quiet"
 
       # - name: Push the Client Docker image
-      #   uses: actions/gcloud/cli@master
-      #   with:
-      #     args: "docker push gcr.io/osmium-250702/osmium-client:$(git describe --abbrev=0 --tags)"
+      #   run: cat ~/.docker/config.json && docker push gcr.io/osmium-250702/osmium-client:$(git describe --abbrev=0 --tags)
 
       - name: Push the Server Docker image
-        uses: actions/gcloud/cli@master
-        with:
-          args: "docker push gcr.io/osmium-250702/osmium-server:$(git describe --abbrev=0 --tags)"
+        run: cat ~/.docker/config.json && docker push gcr.io/osmium-250702/osmium-server:$(git describe --abbrev=0 --tags)
 
       - name: Load GKE kube credentials
         uses: actions/gcloud/cli@master
