@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Build the Client Docker image
-        run: docker build -f ./docker/prod-client.Dockerfile -t gcr.io/osmium-250702/osmium-client:$(git describe --abbrev=0 --tags) .
+      # - name: Build the Client Docker image
+      #   run: docker build -f ./docker/prod-client.Dockerfile -t gcr.io/osmium-250702/osmium-client:$(git describe --abbrev=0 --tags) .
       - name: Build the Server Docker image
         run: docker build -f ./docker/prod-server.Dockerfile -t gcr.io/osmium-250702/osmium-server:$(git describe --abbrev=0 --tags) .
 
@@ -20,22 +20,22 @@ jobs:
         env:
           GCLOUD_AUTH: ${{ secrets.GCLOUD_AUTH }}
 
-      - name:
+      - name: Configure Docker auth
         uses: actions/gcloud/cli@master
         with:
           args: "auth configure-docker --quiet"
 
-      - name: Push the Client Docker image
-        run: docker push gcr.io/osmium-250702/osmium-client:$(git describe --abbrev=0 --tags)
+      # - name: Push the Client Docker image
+      #   uses: actions/gcloud/cli@master
+      #   run: docker push gcr.io/osmium-250702/osmium-client:$(git describe --abbrev=0 --tags)
       - name: Push the Server Docker image
-        run: docker push gcr.io/osmium-250702/osmium-server:$(git describe --abbrev=0 --tags)
-
-      - name: Load GKE kube credentials
         uses: actions/gcloud/cli@master
-        with:
-          args: "container clusters get-credentials osmium-cluster --zone us-east1-b --project osmium-250702"
-
-      - name: Deploy to GKE
-        uses: docker://gcr.io/cloud-builders/kubectl
-        with:
-          args: "apply -f ./deploy"
+        run: docker push gcr.io/osmium-250702/osmium-server:$(git describe --abbrev=0 --tags)
+      # - name: Load GKE kube credentials
+      #   uses: actions/gcloud/cli@master
+      #   with:
+      #     args: "container clusters get-credentials osmium-cluster --zone us-east1-b --project osmium-250702"
+      # - name: Deploy to GKE
+      #   uses: docker://gcr.io/cloud-builders/kubectl
+      #   with:
+      #     args: "apply -f ./deploy"
