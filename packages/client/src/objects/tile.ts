@@ -6,7 +6,7 @@ export function createTile(tile: Tile): RenderObject {
   const geometry = new BoxGeometry(tile.width, tile.height, 1);
   const material = new MeshStandardMaterial({
     color: tile.invulnerable ? 0xffffff : 0x6933fe,
-    emissive: 0xffffff,
+    emissive: 0x00ff99,
     emissiveIntensity: 0.1,
   });
   const mesh = new Mesh(geometry, material);
