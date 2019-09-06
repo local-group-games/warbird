@@ -41,20 +41,12 @@ jobs:
         with:
           args: "container clusters get-credentials osmium-cluster --zone us-east1-b --project osmium-250702"
 
-      - name: Delete GKE resources
-        uses: docker://gcr.io/cloud-builders/kubectl
-        env:
-          CLOUDSDK_CORE_PROJECT: osmium-250702
-          CLOUDSDK_COMPUTE_ZONE: us-east1-b
-          CLOUDSDK_CONTAINER_CLUSTER: osmium-cluster
-        with:
-          args: "delete --ignore-not-found -f ./deploy"
-
       - name: Deploye GKE resources
         uses: docker://gcr.io/cloud-builders/kubectl
         env:
           CLOUDSDK_CORE_PROJECT: osmium-250702
           CLOUDSDK_COMPUTE_ZONE: us-east1-b
           CLOUDSDK_CONTAINER_CLUSTER: osmium-cluster
+          PROJECT_ID: ${{ secrets.PROJECT_ID }}
         with:
-          args: "create -f ./deploy"
+          args: "SHORT_REF=$(echo ${GITHUB_REF} | grep -E -o 'v([0-9]\.?)+') && awk 'FNR==1{print "---"}{print}' $GITHUB_WORKSPACE/deploy/* | sed '1d' | sed 's/PROJECT_ID/'\"$PROJECT_ID\"'/' | sed 's/TAG/'\"$SHORT_REF\"'/' | kubectl apply -f - "

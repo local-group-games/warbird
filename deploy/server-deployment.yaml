@@ -18,13 +18,13 @@ spec:
         io.kompose.service: server
     spec:
       containers:
-      - env:
-        - name: PORT
-          value: "3000"
-        image: gcr.io/osmium-250702/osmium-server
-        name: server
-        ports:
-        - containerPort: 3000
-        resources: {}
+        - env:
+            - name: PORT
+              value: "3000"
+          image: gcr.io/PROJECT_ID/osmium-server:TAG
+          name: server
+          ports:
+            - containerPort: 3000
+          resources: {}
       restartPolicy: Always
 status: {}

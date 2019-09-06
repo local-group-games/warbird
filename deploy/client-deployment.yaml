@@ -18,13 +18,13 @@ spec:
         io.kompose.service: client
     spec:
       containers:
-      - env:
-        - name: SERVER_HOST
-          value: localhost/server
-        image: gcr.io/osmium-250702/osmium-client
-        name: client
-        ports:
-        - containerPort: 80
-        resources: {}
+        - env:
+            - name: SERVER_HOST
+              value: localhost/server
+          image: gcr.io/PROJECT_ID/osmium-client:TAG
+          name: client
+          ports:
+            - containerPort: 80
+          resources: {}
       restartPolicy: Always
 status: {}
