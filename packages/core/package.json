@@ -1,6 +1,6 @@
 {
   "name": "colyseus-test-core",
-  "version": "0.3.21",
+  "version": "0.3.22",
   "main": "dist/index.js",
   "types": "src/index.ts",
   "license": "MIT",
