@@ -41,11 +41,20 @@ jobs:
         with:
           args: "container clusters get-credentials osmium-cluster --zone us-east1-b --project osmium-250702"
 
-      - name: Deploy to GKE
+      - name: Delete GKE resources
         uses: docker://gcr.io/cloud-builders/kubectl
         env:
           CLOUDSDK_CORE_PROJECT: osmium-250702
           CLOUDSDK_COMPUTE_ZONE: us-east1-b
           CLOUDSDK_CONTAINER_CLUSTER: osmium-cluster
         with:
-          args: "apply -f ./deploy"
+          args: "delete -f ./deploy"
+
+      - name: Deploye GKE resources
+        uses: docker://gcr.io/cloud-builders/kubectl
+        env:
+          CLOUDSDK_CORE_PROJECT: osmium-250702
+          CLOUDSDK_COMPUTE_ZONE: us-east1-b
+          CLOUDSDK_CONTAINER_CLUSTER: osmium-cluster
+        with:
+          args: "create -f ./deploy"
