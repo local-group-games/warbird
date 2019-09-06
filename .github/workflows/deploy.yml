@@ -49,5 +49,5 @@ jobs:
           CLOUDSDK_CONTAINER_CLUSTER: osmium-cluster
           PROJECT_ID: ${{ secrets.PROJECT_ID }}
         with:
-          entrypoint: sh -l -c
+          entrypoint: /bin/sh -l -c
           args: "SHORT_REF=$(echo ${GITHUB_REF} | grep -E -o 'v([0-9]\\.?)+') && awk 'FNR==1{print \"---\"}{print}' $GITHUB_WORKSPACE/deploy/* | sed '1d' | sed 's/PROJECT_ID/'\"$PROJECT_ID\"'/' | sed 's/TAG/'\"$SHORT_REF\"'/' | kubectl apply -f - "
