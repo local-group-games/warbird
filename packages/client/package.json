@@ -1,6 +1,6 @@
 {
   "name": "colyseus-test-client",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
@@ -11,7 +11,7 @@
   "dependencies": {
     "@types/react": "^16.9.2",
     "@types/react-dom": "^16.9.0",
-    "colyseus-test-core": "0.3.7",
+    "colyseus-test-core": "0.3.8",
     "colyseus.js": "^0.11.0",
     "react": "^16.9.0",
     "react-app-rewired": "^2.1.3",
