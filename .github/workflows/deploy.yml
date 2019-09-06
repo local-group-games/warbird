@@ -48,7 +48,7 @@ jobs:
           CLOUDSDK_COMPUTE_ZONE: us-east1-b
           CLOUDSDK_CONTAINER_CLUSTER: osmium-cluster
         with:
-          args: "delete -f ./deploy"
+          args: "delete --ignore-not-found -f ./deploy"
 
       - name: Deploye GKE resources
         uses: docker://gcr.io/cloud-builders/kubectl
