@@ -21,6 +21,7 @@ ADD bin ./bin
 # Add source code
 ADD packages/core ./packages/core
 ADD packages/client ./packages/client
+ADD packages/ui ./packages/ui
 
 # Fix npm warning
 RUN npm config set scripts-prepend-node-path true

@@ -12,7 +12,10 @@ import {
   placeTile,
   Player,
 } from "colyseus-test-core";
+import { loadFont } from "colyseus-test-ui";
 import { Client, Room } from "colyseus.js";
+import React from "react";
+import ReactDOM from "react-dom";
 import {
   AmbientLight,
   DirectionalLight,
@@ -22,6 +25,7 @@ import {
   WebGLRenderer,
 } from "three";
 import { createExplosion } from "./animations/explosion";
+import { App } from "./App";
 import { getMousePosition } from "./helpers/getMousePosition";
 import { createInputListener } from "./input";
 import { createBall } from "./objects/ball";
@@ -43,15 +47,10 @@ const input = createInputListener({
 });
 
 async function preload() {
-  // @ts-ignore
-  const myFont = new FontFace(
+  await loadFont(
     "PragmataPro Mono Liga",
-    "url(./assets/fonts/PragmataProMonoLiga.woff2)",
+    "./assets/fonts/PragmataProMonoLiga.woff2",
   );
-  const font = await myFont.load();
-
-  // @ts-ignore
-  document.fonts.add(font);
 }
 
 function waitMs(ms: number) {
@@ -263,7 +262,7 @@ async function main() {
 
   requestAnimationFrame(render);
 
-  ui.textContent = `${process.env.REACT_APP_NAME} v${process.env.REACT_APP_VERSION}`;
+  ReactDOM.render(<App room={room} />, ui);
 }
 
 main();
