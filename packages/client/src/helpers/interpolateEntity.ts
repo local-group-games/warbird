@@ -1,5 +1,5 @@
-import { EntitySchema, BodySchema } from "colyseus-test-core";
-import { Object3D, Math } from "three";
+import { BodySchema } from "colyseus-test-core";
+import { Math, Object3D } from "three";
 
 export function interpolateEntity(body: BodySchema, object: Object3D) {
   object.position.set(

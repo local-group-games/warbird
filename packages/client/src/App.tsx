@@ -40,30 +40,31 @@ export function App(props: AppProps) {
     playerHealth: 0,
     playerEnergy: 0,
   });
-  function onStateChange() {
-    const player: Player = props.room.state.players[props.room.sessionId];
-
-    if (player && player.shipId) {
-      const ship: Ship = props.room.state.entities[player.shipId];
-
-      if (
-        ship &&
-        (ship.health !== state.playerHealth ||
-          ship.energy !== state.playerEnergy)
-      ) {
-        dispatch({
-          type: AppActionTypes.UpdatePlayer,
-          payload: { playerEnergy: ship.energy, playerHealth: ship.health },
-        });
-      }
-    }
-  }
 
   useEffect(() => {
+    function onStateChange() {
+      const player: Player = props.room.state.players[props.room.sessionId];
+
+      if (player && player.shipId) {
+        const ship: Ship = props.room.state.entities[player.shipId];
+
+        if (
+          ship &&
+          (ship.health !== state.playerHealth ||
+            ship.energy !== state.playerEnergy)
+        ) {
+          dispatch({
+            type: AppActionTypes.UpdatePlayer,
+            payload: { playerEnergy: ship.energy, playerHealth: ship.health },
+          });
+        }
+      }
+    }
+
     props.room.onStateChange(onStateChange);
 
     return () => props.room.onStateChange.remove(onStateChange);
-  }, [props.room]);
+  }, [props.room, state]);
 
   return (
     <Root>

@@ -1,7 +1,7 @@
 {
   "name": "colyseus-test-ui",
   "version": "0.5.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "types": "src/index.ts",
   "license": "MIT",
   "scripts": {
@@ -10,13 +10,12 @@
   "dependencies": {
     "@types/react": "^16.9.2",
     "@types/react-dom": "^16.9.0",
-    "@types/styled-components": "^4.1.18",
     "colyseus-test-core": "0.5.0",
     "colyseus.js": "^0.11.0",
+    "emotion": "^10.0.17",
     "react": "^16.9.0",
     "react-app-rewired": "^2.1.3",
-    "react-dom": "^16.9.0",
-    "styled-components": "^4.3.2"
+    "react-dom": "^16.9.0"
   },
   "browserslist": {
     "production": [

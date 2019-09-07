@@ -1,5 +1,5 @@
 import React from "react";
-import styled from "styled-components";
+import { css, cx } from "emotion";
 
 type WrapperProps = {
   height: number;
@@ -13,23 +13,26 @@ type BarProps = {
 
 export type MeterProps = WrapperProps & BarProps;
 
-const Wrapper = styled.div`
-  display: flex;
-  height: ${(props: WrapperProps) => props.height}px;
-`;
-
-const Bar = styled.div`
-  width: ${(props: BarProps) => props.progress * 100}%;
-  height: 100%;
-  background-color: ${(props: BarProps) => props.color};
-`;
-
 export function Meter(props: MeterProps) {
   const { color, height, progress, className } = props;
 
   return (
-    <Wrapper height={height} className={className}>
-      <Bar color={color} progress={progress} />
-    </Wrapper>
+    <div
+      className={cx(
+        className,
+        css`
+          display: flex;
+          height: ${props.height}px;
+        `,
+      )}
+    >
+      <div
+        className={css`
+          width: ${props.progress * 100}%;
+          height: 100%;
+          background-color: ${props.color};
+        `}
+      />
+    </div>
   );
 }
