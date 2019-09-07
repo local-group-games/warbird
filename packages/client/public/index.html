@@ -33,6 +33,18 @@
         padding: 0;
         background: #030303;
       }
+      #ui {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        pointer-events: none;
+        color: #ffffff;
+        font-size: 12px;
+        font-family: "PragmataPro Mono", monospace;
+      }
+      #ui > * {
+        pointer-events: auto;
+      }
       #game {
         width: 100%;
         height: 100%;
@@ -42,6 +54,7 @@
   </head>
   <body>
     <noscript> You need to enable JavaScript to run this app. </noscript>
+    <div id="ui"></div>
     <canvas id="game"></canvas>
     <script type="text/javascript" src="env-config.js"></script>
   </body>

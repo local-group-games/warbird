@@ -103,6 +103,7 @@ async function connect<S>(
 }
 
 async function main() {
+  const ui = document.getElementById("ui") as HTMLElement;
   const canvas = document.getElementById("game") as HTMLCanvasElement;
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   const ambientLight = new AmbientLight(0xffffff, 0.2);
@@ -261,6 +262,8 @@ async function main() {
   onWindowResize();
 
   requestAnimationFrame(render);
+
+  ui.textContent = `${process.env.REACT_APP_NAME} v${process.env.REACT_APP_VERSION}`;
 }
 
 main();
