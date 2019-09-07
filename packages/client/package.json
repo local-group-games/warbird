@@ -1,6 +1,6 @@
 {
   "name": "colyseus-test-client",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
@@ -12,7 +12,7 @@
     "@types/react": "^16.9.2",
     "@types/react-dom": "^16.9.0",
     "colyseus-test-core": "0.5.0",
-    "colyseus-test-ui": "0.5.0",
+    "colyseus-test-ui": "0.5.1",
     "colyseus.js": "^0.11.0",
     "react": "^16.9.0",
     "react-app-rewired": "^2.1.3",
