@@ -15,6 +15,9 @@ ADD yarn.lock ./yarn.lock
 ADD lerna.json ./lerna.json
 ADD tsconfig.json ./tsconfig.json
 
+# Create env file
+COPY packages/client/.env.example packages/client/.env
+
 # Add monrepo utilities
 ADD bin ./bin
 
