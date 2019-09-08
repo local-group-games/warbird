@@ -254,7 +254,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
       if (command.thrustForward || command.thrustReverse) {
         const thrust = getShipThrust(command);
         const thrustCost =
-          thrust * SHIP_ENERGY_COST_PER_THRUST_PER_S * deltaTimeS;
+          Math.abs(thrust) * SHIP_ENERGY_COST_PER_THRUST_PER_S * deltaTimeS;
 
         if (ship.energy >= thrustCost) {
           ship.energy -= thrustCost;
