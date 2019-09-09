@@ -18,12 +18,12 @@ import {
   ShipSchema,
   TileSchema,
   WreckageSchema,
+  WeaponSchema,
 } from "colyseus-test-core";
 import { World } from "p2";
 import { detect } from "../helpers/detect";
 import { getShipThrust } from "../helpers/getShipThrust";
 import { getShipTurn } from "../helpers/getShipTurn";
-import { shipCanFire } from "../helpers/shipCanFire";
 
 const PLAYER_SPAWN_TIMEOUT = 2000;
 
@@ -68,7 +68,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     destructible.health -= PROJECTILE_BASE_DAMAGE;
   };
 
-  onWreckageOverlap = (wreckage: WreckageSchema, ship: ShipSchema) => {
+  onWreckageHit = (wreckage: WreckageSchema, ship: ShipSchema) => {
     const player = this.findPlayerByShip(ship);
 
     this.removeEntity(wreckage);
@@ -80,7 +80,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
 
   onCollisionStart = (a: BodySchema, b: BodySchema) => {
     detect(isBullet, isDestructible, a, b, this.onProjectileHit);
-    detect(isWreckage, isShip, a, b, this.onWreckageOverlap);
+    detect(isWreckage, isShip, a, b, this.onWreckageHit);
   };
 
   addEntity(entity: EntitySchema) {
@@ -93,6 +93,15 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
 
   spawn(player: PlayerSchema) {
     const ship = new ShipSchema();
+    const weapon1 = new WeaponSchema();
+    const weapon2 = new WeaponSchema();
+
+    weapon2.fireRate = 1;
+    weapon2.energyCost = 5;
+    weapon2.projectileVelocity = 10;
+
+    ship.weapons.push(weapon1, weapon2);
+    ship.activeWeapon = 0;
 
     ship.x = (Math.random() - 0.5) * -5;
     ship.y = (Math.random() - 0.5) * -5;
@@ -113,11 +122,6 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
 
   onJoin(client: Client) {
     const { sessionId } = client;
-    const ship = new ShipSchema();
-
-    ship.x = (Math.random() - 0.5) * -5;
-    ship.y = (Math.random() - 0.5) * -5;
-
     const player = new PlayerSchema();
 
     player.id = sessionId;
@@ -129,18 +133,23 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
   }
 
   onMessage(client: Client, message: GameMessage) {
+    const player: PlayerSchema = this.state.players[client.sessionId];
+
+    if (!player) {
+      console.warn("Received message from unregistered client");
+      return;
+    }
+
     switch (message[0]) {
       case GameMessageType.PlayerCommand: {
         const [key, value] = message[1];
-        const player = this.state.players[client.sessionId];
 
-        player.command[key] = value;
+        player.input[key] = value;
 
         break;
       }
       case GameMessageType.PlaceTile: {
         const [x, y] = message[1].map(Math.round);
-        const player: PlayerSchema = this.state.players[client.sessionId];
 
         if (player.scrap <= 0) {
           break;
@@ -167,6 +176,16 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
         }
 
         break;
+      }
+      case GameMessageType.ChangeWeapon: {
+        const index = message[1];
+        const player: PlayerSchema = this.state.players[client.sessionId];
+        const ship: ShipSchema = this.state.entities[player.shipId];
+        const weapon = ship.weapons[index];
+
+        if (weapon) {
+          ship.activeWeapon = index;
+        }
       }
       default:
         break;
@@ -196,7 +215,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     }
   }
 
-  findPlayerByShip(ship: ShipSchema) {
+  findPlayerByShip(ship: ShipSchema): PlayerSchema | null {
     for (const clientId in this.clients) {
       const client = this.clients[clientId];
       const player = this.state.players[client.sessionId];
@@ -245,7 +264,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     for (const client of this.clients) {
       const player: PlayerSchema = this.state.players[client.sessionId];
       const ship: ShipSchema = this.state.entities[player.shipId];
-      const { command } = player;
+      const { input: command } = player;
 
       if (!ship) {
         continue;
@@ -269,15 +288,31 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
         this.physics.rotate(ship, ship.angle + turn);
       }
 
-      if (shipCanFire(ship, command, now)) {
-        const bullet = new BulletSchema();
+      if (command.activateWeapon) {
+        const weapon = ship.weapons[ship.activeWeapon];
 
-        Object.assign(bullet, getBulletOptions(ship));
+        if (weapon) {
+          const {
+            energyCost,
+            fireRate,
+            lastFireTime,
+            projectileVelocity,
+          } = weapon;
 
-        this.addEntity(bullet);
+          if (
+            ship.energy >= energyCost &&
+            now - lastFireTime >= fireRate * 100
+          ) {
+            const bullet = new BulletSchema();
 
-        ship.weapons[0].lastFireTime = now;
-        ship.energy -= ship.weapons[0].energyCost;
+            Object.assign(bullet, getBulletOptions(ship, projectileVelocity));
+
+            this.addEntity(bullet);
+
+            weapon.lastFireTime = now;
+            ship.energy -= energyCost;
+          }
+        }
       }
 
       ship.energy = Math.min(

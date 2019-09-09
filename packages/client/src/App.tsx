@@ -1,4 +1,4 @@
-import { Player, Ship } from "colyseus-test-core";
+import { Player, Ship, ShipSchema } from "colyseus-test-core";
 import { Meter, Root } from "colyseus-test-ui";
 import { Room } from "colyseus.js";
 import React, { useEffect, useReducer } from "react";
@@ -8,28 +8,42 @@ type AppProps = {
 };
 
 type AppState = {
-  playerHealth: number;
-  playerEnergy: number;
+  playerShip: Ship | null;
 };
 
 enum AppActionTypes {
-  UpdatePlayer,
+  UpdatePlayerShip,
 }
 
-type UpdatePlayer = {
-  type: AppActionTypes.UpdatePlayer;
-  payload: { playerHealth: number; playerEnergy: number };
+type UpdatePlayerShip = {
+  type: AppActionTypes.UpdatePlayerShip;
+  payload: Ship;
 };
 
-type AppAction = UpdatePlayer;
+function shallowEquals(
+  a: { [key: string]: any },
+  b: { [key: string]: any },
+  keys?: string[],
+) {
+  for (const key in a) {
+    if (b[key] !== a[key] && (!keys || keys.indexOf(key) > -1)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+type AppAction = UpdatePlayerShip;
+
+const SHIP_CHANGE_KEYS = ["health", "energy", "activeWeapon"];
 
 function appReducer(state: AppState, action: AppAction) {
   switch (action.type) {
-    case AppActionTypes.UpdatePlayer:
+    case AppActionTypes.UpdatePlayerShip:
       return {
         ...state,
-        playerHealth: action.payload.playerHealth,
-        playerEnergy: action.payload.playerEnergy,
+        playerShip: { ...action.payload },
       };
   }
   return state;
@@ -37,8 +51,7 @@ function appReducer(state: AppState, action: AppAction) {
 
 export function App(props: AppProps) {
   const [state, dispatch] = useReducer(appReducer, {
-    playerHealth: 0,
-    playerEnergy: 0,
+    playerShip: null,
   });
 
   useEffect(() => {
@@ -50,12 +63,12 @@ export function App(props: AppProps) {
 
         if (
           ship &&
-          (ship.health !== state.playerHealth ||
-            ship.energy !== state.playerEnergy)
+          (!state.playerShip ||
+            !shallowEquals(ship, state.playerShip, SHIP_CHANGE_KEYS))
         ) {
           dispatch({
-            type: AppActionTypes.UpdatePlayer,
-            payload: { playerEnergy: ship.energy, playerHealth: ship.health },
+            type: AppActionTypes.UpdatePlayerShip,
+            payload: ship,
           });
         }
       }
@@ -68,8 +81,44 @@ export function App(props: AppProps) {
 
   return (
     <Root>
-      <Meter color="#88ff33" height={4} progress={state.playerHealth / 100} />
-      <Meter color="#3388ff" height={4} progress={state.playerEnergy / 100} />
+      {state.playerShip && (
+        <>
+          <Meter
+            color="#88ff33"
+            height={4}
+            progress={state.playerShip.health / 100}
+          />
+          <Meter
+            color="#3388ff"
+            height={4}
+            progress={state.playerShip.energy / 100}
+          />
+          <ul>
+            {state.playerShip.weapons.map((weapon, i) => (
+              <li key={i}>
+                <span
+                  style={{
+                    color:
+                      state.playerShip && state.playerShip.activeWeapon === i
+                        ? "red"
+                        : "inherit",
+                  }}
+                >
+                  Weapon {i}
+                </span>
+                <dl>
+                  <dt>Fire rate</dt>
+                  <dd>{weapon.fireRate}</dd>
+                </dl>
+                <dl>
+                  <dt>Energy cost</dt>
+                  <dd>{weapon.energyCost}</dd>
+                </dl>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
       <div>{`${process.env.REACT_APP_NAME} v${process.env.REACT_APP_VERSION}`}</div>
     </Root>
   );

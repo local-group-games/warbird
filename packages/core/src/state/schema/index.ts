@@ -6,4 +6,5 @@ export * from "./ShipSchema";
 export * from "./TileSchema";
 export * from "./GameStateSchema";
 export * from "./BodySchema";
+export * from "./WeaponSchema";
 export * from "./WreckageSchema";

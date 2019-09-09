@@ -8,4 +8,6 @@ export class WeaponSchema extends Schema implements Weapon {
   lastFireTime = 0;
   @type("uint8")
   energyCost = 10;
+  @type("uint8")
+  projectileVelocity = 25;
 }

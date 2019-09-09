@@ -14,7 +14,9 @@ export class ShipSchema extends BodySchema implements Ship {
   energy = 100;
 
   @type([WeaponSchema])
-  weapons = new ArraySchema<WeaponSchema>(new WeaponSchema());
+  weapons = new ArraySchema<WeaponSchema>();
+  @type("int8")
+  activeWeapon = -1;
 
   @type("uint8")
   health = 100;

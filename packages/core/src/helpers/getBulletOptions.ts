@@ -2,7 +2,10 @@ import { BodySchema } from "../state";
 
 const BULLET_VELOCITY = 25;
 
-export function getBulletOptions(origin: BodySchema) {
+export function getBulletOptions(
+  origin: BodySchema,
+  velocity: number = BULLET_VELOCITY,
+) {
   const { angle, height, x, y, velocityX, velocityY } = origin;
   const s = Math.sin(angle);
   const c = Math.cos(angle);
@@ -10,7 +13,7 @@ export function getBulletOptions(origin: BodySchema) {
   return {
     x: -height * s + x,
     y: height * c + y,
-    velocityX: -BULLET_VELOCITY * s + velocityX,
-    velocityY: BULLET_VELOCITY * c + velocityY,
+    velocityX: -velocity * s + velocityX,
+    velocityY: velocity * c + velocityY,
   };
 }

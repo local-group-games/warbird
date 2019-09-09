@@ -7,5 +7,5 @@ export function interpolateEntity(body: BodySchema, object: Object3D) {
     Math.lerp(object.position.y, body.y, 0.6),
     0,
   );
-  object.rotation.set(0, 0, Math.lerp(object.rotation.z, body.angle, 0.75));
+  object.rotation.set(0, 0, Math.lerp(object.rotation.z, body.angle, 0.9));
 }

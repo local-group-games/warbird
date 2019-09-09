@@ -1,28 +1,28 @@
-import { PlayerCommandPayload } from "colyseus-test-core";
+import { PlayerInputs } from "colyseus-test-core";
 
 export interface KeyBindings {
-  [keyCode: string]: keyof PlayerCommandPayload;
+  [keyCode: string]: keyof PlayerInputs;
 }
 
-type InputSubscriber = <K extends keyof PlayerCommandPayload>(
+type InputSubscriber = <K extends keyof PlayerInputs>(
   key: K,
-  value: PlayerCommandPayload[K],
+  value: PlayerInputs[K],
 ) => any;
 
 export function createInputListener(keyBindings: KeyBindings) {
-  const subscribers: InputSubscriber[] = [];
-  const command: PlayerCommandPayload = {
+  const subscribers = new Set<InputSubscriber>();
+  const command: PlayerInputs = {
     thrustForward: false,
     thrustReverse: false,
     turnLeft: false,
     turnRight: false,
     afterburners: false,
-    fire: false,
+    activateWeapon: false,
   };
 
-  function update<K extends keyof PlayerCommandPayload>(
+  function update<K extends keyof PlayerInputs>(
     key: K,
-    value: PlayerCommandPayload[K],
+    value: PlayerInputs[K],
   ) {
     for (const subscriber of subscribers) {
       subscriber(key, value);
@@ -66,7 +66,10 @@ export function createInputListener(keyBindings: KeyBindings) {
 
   return {
     subscribe: (subscriber: InputSubscriber) => {
-      subscribers.push(subscriber);
+      subscribers.add(subscriber);
+    },
+    unsubscribe: (subscriber: InputSubscriber) => {
+      subscribers.delete(subscriber);
     },
   };
 }

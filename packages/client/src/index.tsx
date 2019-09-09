@@ -11,6 +11,7 @@ import {
   isWreckage,
   placeTile,
   Player,
+  changeWeapon,
 } from "colyseus-test-core";
 import { loadFont } from "colyseus-test-ui";
 import { Client, Room } from "colyseus.js";
@@ -42,7 +43,7 @@ const input = createInputListener({
   KeyA: "turnLeft",
   KeyS: "thrustReverse",
   KeyD: "turnRight",
-  Space: "fire",
+  Space: "activateWeapon",
   ShiftLeft: "afterburners",
 });
 
@@ -245,6 +246,16 @@ async function main() {
     const { x, y } = getMousePosition(e, camera);
 
     room.send(placeTile(x, y));
+  });
+
+  window.addEventListener("keydown", e => {
+    if (e.repeat) {
+      return;
+    }
+
+    if (e.key === "1" || e.key === "2" || e.key === "3") {
+      room.send(changeWeapon(Number(e.key) - 1));
+    }
   });
 
   function onWindowResize() {

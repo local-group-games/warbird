@@ -1,9 +1,7 @@
-import { PlayerCommandPayload } from "colyseus-test-core";
+import { PlayerInputs } from "colyseus-test-core";
 
-const SHIP_BASE_TURN = 0.06;
+const SHIP_BASE_TURN = 0.05;
 
-export function getShipTurn(command: PlayerCommandPayload) {
-  return (
-    (Number(command.turnLeft) - Number(command.turnRight)) * SHIP_BASE_TURN
-  );
+export function getShipTurn(input: PlayerInputs) {
+  return (Number(input.turnLeft) - Number(input.turnRight)) * SHIP_BASE_TURN;
 }

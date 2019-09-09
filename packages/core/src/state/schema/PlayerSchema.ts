@@ -1,5 +1,5 @@
 import { Schema, type } from "@colyseus/schema";
-import { PlayerCommandPayload } from "../../protocol";
+import { PlayerInputs } from "../../protocol";
 import { Player } from "../model/Player";
 import nanoid from "nanoid";
 
@@ -15,12 +15,12 @@ export class PlayerSchema extends Schema implements Player {
   @type("int16")
   scrap: number = 0;
 
-  command: PlayerCommandPayload = {
+  input: PlayerInputs = {
     thrustForward: false,
     thrustReverse: false,
     turnLeft: false,
     turnRight: false,
     afterburners: false,
-    fire: false,
+    activateWeapon: false,
   };
 }
