@@ -1,17 +1,17 @@
 import {
-  BodySchema,
+  Body,
+  changeWeapon,
   command,
-  EntitySchema,
-  GameStateSchema,
+  Entity,
   isBall,
   isBody,
-  isBullet,
+  isProjectile,
   isShip,
   isTile,
   isWreckage,
   placeTile,
   Player,
-  changeWeapon,
+  System,
 } from "colyseus-test-core";
 import { loadFont } from "colyseus-test-ui";
 import { Client, Room } from "colyseus.js";
@@ -175,16 +175,16 @@ async function main() {
   }
 
   const [room] = await Promise.all([
-    connect<GameStateSchema>(
+    connect<System>(
       client,
       "main",
     ),
     preload(),
   ]);
 
-  const objectsByEntity = new Map<BodySchema, RenderObject>();
+  const objectsByEntity = new Map<Body, RenderObject>();
 
-  async function registerBody(entity: BodySchema) {
+  async function registerBody(entity: Body) {
     let object = objectsByEntity.get(entity);
 
     if (!object) {
@@ -194,14 +194,12 @@ async function main() {
         object = createTile(entity);
       } else if (isBall(entity)) {
         object = createBall(entity);
-      } else if (isBullet(entity)) {
+      } else if (isProjectile(entity)) {
         object = createProjectile(entity);
       } else if (isWreckage(entity)) {
         object = createWreckage(entity);
       } else {
-        throw new Error(
-          `Entity ${(entity as EntitySchema).type} not supported.`,
-        );
+        throw new Error(`Entity ${(entity as Entity).type} not supported.`);
       }
 
       scene.add(object.object);
@@ -211,12 +209,12 @@ async function main() {
     return object;
   }
 
-  const onAdd = async (entity: EntitySchema) => {
+  const onAdd = async (entity: Entity) => {
     if (isBody(entity)) {
       registerBody(entity);
     }
   };
-  const onRemove = (entity: EntitySchema) => {
+  const onRemove = (entity: Entity) => {
     if (isBody(entity)) {
       const object = objectsByEntity.get(entity);
 

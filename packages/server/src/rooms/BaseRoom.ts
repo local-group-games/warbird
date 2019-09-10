@@ -1,24 +1,25 @@
 import { Client, Room } from "colyseus";
 import {
-  BodySchema,
-  BulletSchema,
+  Body,
+  Projectile,
   Destructible,
-  EntitySchema,
+  Entity,
   GameMessage,
   GameMessageType,
-  GameStateSchema,
+  System,
   getBulletOptions,
-  isBullet,
+  isProjectile,
   isDestructible,
   isExpireable,
   isShip,
   isWreckage,
   P2PhysicsDriver,
-  PlayerSchema,
-  ShipSchema,
-  TileSchema,
-  WreckageSchema,
-  WeaponSchema,
+  Player,
+  Ship,
+  Tile,
+  Wreckage,
+  Weapon,
+  IDestructible,
 } from "colyseus-test-core";
 import { World } from "p2";
 import { detect } from "../helpers/detect";
@@ -32,13 +33,13 @@ const SHIP_ENERGY_COST_PER_THRUST_PER_S = 2;
 
 const PROJECTILE_BASE_DAMAGE = 25;
 
-export abstract class BaseRoom extends Room<GameStateSchema> {
+export abstract class BaseRoom extends Room<System> {
   private physics: P2PhysicsDriver;
-  private entitiesToAdd = new Set<EntitySchema>();
-  private entitiesToRemove = new Set<EntitySchema>();
+  private entitiesToAdd = new Set<Entity>();
+  private entitiesToRemove = new Set<Entity>();
 
   onCreate(options: any) {
-    const state = new GameStateSchema();
+    const state = new System();
     const world = new World({
       gravity: [0, 0],
     });
@@ -58,7 +59,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     this.physics = physics;
   }
 
-  onProjectileHit = (bullet: BulletSchema, destructible: Destructible) => {
+  onProjectileHit = (bullet: Projectile, destructible: IDestructible) => {
     if (destructible.invulnerable) {
       return;
     }
@@ -68,7 +69,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     destructible.health -= PROJECTILE_BASE_DAMAGE;
   };
 
-  onWreckageHit = (wreckage: WreckageSchema, ship: ShipSchema) => {
+  onWreckageHit = (wreckage: Wreckage, ship: Ship) => {
     const player = this.findPlayerByShip(ship);
 
     this.removeEntity(wreckage);
@@ -78,23 +79,23 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     }
   };
 
-  onCollisionStart = (a: BodySchema, b: BodySchema) => {
-    detect(isBullet, isDestructible, a, b, this.onProjectileHit);
+  onCollisionStart = (a: Body, b: Body) => {
+    detect(isProjectile, isDestructible, a, b, this.onProjectileHit);
     detect(isWreckage, isShip, a, b, this.onWreckageHit);
   };
 
-  addEntity(entity: EntitySchema) {
+  addEntity(entity: Entity) {
     this.entitiesToAdd.add(entity);
   }
 
-  removeEntity(entity: EntitySchema) {
+  removeEntity(entity: Entity) {
     this.entitiesToRemove.add(entity);
   }
 
-  spawn(player: PlayerSchema) {
-    const ship = new ShipSchema();
-    const weapon1 = new WeaponSchema();
-    const weapon2 = new WeaponSchema();
+  spawn(player: Player) {
+    const ship = new Ship();
+    const weapon1 = new Weapon();
+    const weapon2 = new Weapon();
 
     weapon2.fireRate = 1;
     weapon2.energyCost = 5;
@@ -111,8 +112,8 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     this.addEntity(ship);
   }
 
-  spawnWreckage(ship: ShipSchema) {
-    const wreckage = new WreckageSchema();
+  spawnWreckage(ship: Ship) {
+    const wreckage = new Wreckage();
 
     wreckage.x = ship.x;
     wreckage.y = ship.y;
@@ -122,7 +123,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
 
   onJoin(client: Client) {
     const { sessionId } = client;
-    const player = new PlayerSchema();
+    const player = new Player();
 
     player.id = sessionId;
     player.name = "<player_name>";
@@ -133,7 +134,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
   }
 
   onMessage(client: Client, message: GameMessage) {
-    const player: PlayerSchema = this.state.players[client.sessionId];
+    const player: Player = this.state.players[client.sessionId];
 
     if (!player) {
       console.warn("Received message from unregistered client");
@@ -155,8 +156,8 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
           break;
         }
 
-        const ship: ShipSchema = this.state.entities[player.shipId];
-        const tile = new TileSchema();
+        const ship: Ship = this.state.entities[player.shipId];
+        const tile = new Tile();
 
         tile.lifeTimeMs = 30 * 60 * 1000;
         tile.x = x;
@@ -179,8 +180,8 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
       }
       case GameMessageType.ChangeWeapon: {
         const index = message[1];
-        const player: PlayerSchema = this.state.players[client.sessionId];
-        const ship: ShipSchema = this.state.entities[player.shipId];
+        const player: Player = this.state.players[client.sessionId];
+        const ship: Ship = this.state.entities[player.shipId];
         const weapon = ship.weapons[index];
 
         if (weapon) {
@@ -193,7 +194,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
   }
 
   async onLeave(client: Client) {
-    const player: PlayerSchema = this.state.players[client.sessionId];
+    const player: Player = this.state.players[client.sessionId];
 
     player.connected = false;
 
@@ -204,8 +205,8 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
       player.connected = true;
     } catch (e) {
       const { sessionId } = client;
-      const player: PlayerSchema = this.state.players[sessionId];
-      const ship: ShipSchema = this.state.entities[player.shipId];
+      const player: Player = this.state.players[sessionId];
+      const ship: Ship = this.state.entities[player.shipId];
 
       if (ship) {
         this.removeEntity(ship);
@@ -215,7 +216,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     }
   }
 
-  findPlayerByShip(ship: ShipSchema): PlayerSchema | null {
+  findPlayerByShip(ship: Ship): Player | null {
     for (const clientId in this.clients) {
       const client = this.clients[clientId];
       const player = this.state.players[client.sessionId];
@@ -233,7 +234,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     const now = Date.now();
 
     for (const entityId in this.state.entities) {
-      const entity: EntitySchema = this.state.entities[entityId];
+      const entity: Entity = this.state.entities[entityId];
 
       if (
         (isExpireable(entity) &&
@@ -262,8 +263,8 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
     this.prune();
 
     for (const client of this.clients) {
-      const player: PlayerSchema = this.state.players[client.sessionId];
-      const ship: ShipSchema = this.state.entities[player.shipId];
+      const player: Player = this.state.players[client.sessionId];
+      const ship: Ship = this.state.entities[player.shipId];
       const { input: command } = player;
 
       if (!ship) {
@@ -303,7 +304,7 @@ export abstract class BaseRoom extends Room<GameStateSchema> {
             ship.energy >= energyCost &&
             now - lastFireTime >= fireRate * 100
           ) {
-            const bullet = new BulletSchema();
+            const bullet = new Projectile();
 
             Object.assign(bullet, getBulletOptions(ship, projectileVelocity));
 

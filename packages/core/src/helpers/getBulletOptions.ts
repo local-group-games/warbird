@@ -1,9 +1,9 @@
-import { BodySchema } from "../state";
+import { Body } from "../state";
 
 const BULLET_VELOCITY = 25;
 
 export function getBulletOptions(
-  origin: BodySchema,
+  origin: Body,
   velocity: number = BULLET_VELOCITY,
 ) {
   const { angle, height, x, y, velocityX, velocityY } = origin;

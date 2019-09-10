@@ -1,4 +1,10 @@
-import { Player, Ship, ShipSchema } from "colyseus-test-core";
+import {
+  ICapacitor,
+  IDestructible,
+  IWeaponSystem,
+  Player,
+  Ship,
+} from "colyseus-test-core";
 import { Meter, Root } from "colyseus-test-ui";
 import { Room } from "colyseus.js";
 import React, { useEffect, useReducer } from "react";
@@ -8,7 +14,7 @@ type AppProps = {
 };
 
 type AppState = {
-  playerShip: Ship | null;
+  playerShip: (IDestructible & ICapacitor & IWeaponSystem) | null;
 };
 
 enum AppActionTypes {
@@ -38,7 +44,7 @@ type AppAction = UpdatePlayerShip;
 
 const SHIP_CHANGE_KEYS = ["health", "energy", "activeWeapon"];
 
-function appReducer(state: AppState, action: AppAction) {
+function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case AppActionTypes.UpdatePlayerShip:
       return {
@@ -59,6 +65,7 @@ export function App(props: AppProps) {
       const player: Player = props.room.state.players[props.room.sessionId];
 
       if (player && player.shipId) {
+        const s = new Ship();
         const ship: Ship = props.room.state.entities[player.shipId];
 
         if (

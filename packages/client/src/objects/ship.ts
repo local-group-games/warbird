@@ -1,4 +1,4 @@
-import { ShipSchema } from "colyseus-test-core";
+import { Ship } from "colyseus-test-core";
 import { Matrix4 } from "three";
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { interpolateEntity } from "../helpers/interpolateEntity";
@@ -11,7 +11,7 @@ const loadResource = (file: string) =>
     loader.load(file, resolve, () => {}, reject),
   );
 
-export async function createShip(ship: ShipSchema): Promise<RenderObject> {
+export async function createShip(ship: Ship): Promise<RenderObject> {
   const gltf = await loadResource("/assets/models/ship/scene.gltf");
   const { scene: model } = gltf;
 

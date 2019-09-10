@@ -1,3 +1,3 @@
+export * from "./Entity";
+export * from "./game";
 export * from "./physics";
-export * from "./schema";
-export * from "./model";

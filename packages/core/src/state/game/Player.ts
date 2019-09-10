@@ -1,9 +1,8 @@
 import { Schema, type } from "@colyseus/schema";
 import { PlayerInputs } from "../../protocol";
-import { Player } from "../model/Player";
 import nanoid from "nanoid";
 
-export class PlayerSchema extends Schema implements Player {
+export class Player extends Schema {
   @type("string")
   id: string = nanoid();
   @type("string")

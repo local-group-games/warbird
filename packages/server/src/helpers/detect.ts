@@ -1,4 +1,4 @@
-import { BodySchema, EntitySchema, Entity } from "colyseus-test-core";
+import { Entity } from "colyseus-test-core";
 
 export function detect<A, B>(
   predicateA: (entity: any) => entity is A,

@@ -1,4 +1,4 @@
-import { BallSchema, TileSchema } from "colyseus-test-core";
+import { Ball, Tile } from "colyseus-test-core";
 import { BaseRoom } from "./BaseRoom";
 
 const map: number[][] = [
@@ -16,7 +16,7 @@ export class MainRoom extends BaseRoom {
     super.onCreate(options);
 
     for (const [x, y] of map) {
-      const tile = new TileSchema();
+      const tile = new Tile();
 
       tile.x = x;
       tile.y = y;
@@ -27,7 +27,7 @@ export class MainRoom extends BaseRoom {
     }
 
     for (let i = 0; i < 10; i++) {
-      const ball = new BallSchema();
+      const ball = new Ball();
 
       ball.x = Math.random() * -10;
       ball.y = Math.random() * -10;

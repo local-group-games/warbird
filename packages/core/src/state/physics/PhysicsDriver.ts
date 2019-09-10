@@ -1,14 +1,14 @@
 import { MapSchema } from "@colyseus/schema";
 import { ChangeTree } from "@colyseus/schema/lib/ChangeTree";
 import { AABB, Body as P2Body, Box, World } from "p2";
-import { Body } from "../model/Body";
-import { BodySchema, EntitySchema, isBody } from "../schema";
+import { Entity } from "../Entity";
+import { Body, isBody } from "./Body";
 import { syncBodyToSchema } from "./syncBody";
 
-type CollisionHandler = (a: BodySchema, b: BodySchema) => void;
+type CollisionHandler = (a: Body, b: Body) => void;
 
 type PhysicsDriverOptions = {
-  state: MapSchema<EntitySchema>;
+  state: MapSchema<Entity>;
   onCollisionStart?: CollisionHandler;
   onCollisionEnd?: CollisionHandler;
 };
@@ -19,7 +19,7 @@ export class P2PhysicsDriver {
   static FORCE: [number, number] = [0, 0];
   static LOCAL_POINT: [number, number] = [0, 0];
 
-  private state: MapSchema<EntitySchema>;
+  private state: MapSchema<Entity>;
   private world: World;
   private p2BodiesBySchemaId = new Map<string, P2Body>();
   private schemaIdsByP2Body = new Map<P2Body, string>();

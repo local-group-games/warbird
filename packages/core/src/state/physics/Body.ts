@@ -1,8 +1,7 @@
 import { type } from "@colyseus/schema";
-import { Body, CollisionGroup } from "../model/Body";
-import { EntitySchema } from "./EntitySchema";
+import { Entity } from "../Entity";
 
-export class BodySchema extends EntitySchema implements Body {
+export class Body extends Entity {
   @type("float32")
   x: number = 0;
   @type("float32")
@@ -21,11 +20,10 @@ export class BodySchema extends EntitySchema implements Body {
   angularDamping = 0;
   damping = 0;
   fixedRotation = false;
-  collisionGroup = CollisionGroup.Static;
-  collisionMask =
-    CollisionGroup.Static | CollisionGroup.Projectile | CollisionGroup.Vehicle;
+  collisionGroup = 0;
+  collisionMask = 0;
   sensor = false;
 }
 
-export const isBody = (entity: any): entity is BodySchema =>
+export const isBody = (entity: any): entity is Body =>
   typeof entity.x === "number";

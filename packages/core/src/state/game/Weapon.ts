@@ -1,7 +1,6 @@
 import { Schema, type } from "@colyseus/schema";
-import { Weapon } from "../model/WeaponSystem";
 
-export class WeaponSchema extends Schema implements Weapon {
+export class Weapon extends Schema {
   @type("uint8")
   fireRate = 2;
   @type("uint32")

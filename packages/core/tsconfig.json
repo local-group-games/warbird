@@ -2,7 +2,8 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "module": "commonjs"
+    "module": "commonjs",
+    "typeRoots": ["./src/types"]
   },
   "exclude": ["**/*.spec.ts", "**/*.spec.tsx"]
 }

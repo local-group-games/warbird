@@ -1,5 +1,5 @@
 import { Body as P2Body } from "p2";
-import { Body } from "../model/Body";
+import { Body } from "./Body";
 
 const trunc2 = (x: number) => Math.floor(x * 100) / 100;
 
