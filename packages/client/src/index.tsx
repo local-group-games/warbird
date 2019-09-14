@@ -24,6 +24,11 @@ import {
   PerspectiveCamera,
   Scene,
   WebGLRenderer,
+  BoxGeometry,
+  MeshBasicMaterial,
+  BackSide,
+  Mesh,
+  OrthographicCamera,
 } from "three";
 import { createExplosion } from "./animations/explosion";
 import { App } from "./App";
@@ -35,6 +40,8 @@ import { createShip } from "./objects/ship";
 import { createTile } from "./objects/tile";
 import { createWreckage } from "./objects/wreckage";
 import { Animation, RenderObject } from "./types";
+import { createStarFieldTexture } from "./textures/stars";
+import { createSkyBox } from "./skybox";
 
 const explosionDuration = 500;
 
@@ -110,6 +117,7 @@ async function main() {
   const directionalLight = new DirectionalLight(0xffffff, 0.5);
   const scene = new Scene();
   const camera = new PerspectiveCamera(30);
+  const skyCamera = new PerspectiveCamera(30);
   const client = new Client(
     `ws://${(window as any).APP_CONFIGURATION.SERVER_HOST.replace(
       "localhost",
@@ -117,6 +125,7 @@ async function main() {
     )}`,
   );
   const animations = new Set<Animation>();
+  const sky = createSkyBox();
 
   renderer.setClearAlpha(0);
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -124,6 +133,7 @@ async function main() {
   renderer.shadowMap.type = PCFSoftShadowMap;
 
   camera.position.set(0, 0, 75);
+  skyCamera.position.set(0, 0, 75);
 
   directionalLight.position.set(-5, -15, 10);
   directionalLight.shadowMapWidth = 2048;
@@ -155,6 +165,8 @@ async function main() {
         const object = objectsByEntity.get(ship);
 
         if (object) {
+          skyCamera.position.x = object.object.position.x * 0.05;
+          skyCamera.position.y = object.object.position.y * 0.05;
           camera.position.x = object.object.position.x;
           camera.position.y = object.object.position.y;
         }
@@ -169,8 +181,10 @@ async function main() {
         scene.remove(animation.object);
       }
     });
-
+    renderer.autoClear = true;
     renderer.render(scene, camera);
+    renderer.autoClear = false;
+    renderer.render(sky, skyCamera);
     requestAnimationFrame(render);
   }
 
@@ -261,6 +275,9 @@ async function main() {
 
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
+
+    skyCamera.aspect = innerWidth / innerHeight;
+    skyCamera.updateProjectionMatrix();
 
     renderer.setSize(innerWidth, innerHeight);
   }
