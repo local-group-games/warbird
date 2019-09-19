@@ -2,7 +2,6 @@ import { Client, Room } from "colyseus";
 import {
   Body,
   Projectile,
-  Destructible,
   Entity,
   GameMessage,
   GameMessageType,
@@ -152,11 +151,12 @@ export abstract class BaseRoom extends Room<System> {
       case GameMessageType.PlaceTile: {
         const [x, y] = message[1].map(Math.round);
 
-        if (player.scrap <= 0) {
+        const ship: Ship = this.state.entities[player.shipId];
+
+        if (!ship || player.scrap <= 0) {
           break;
         }
 
-        const ship: Ship = this.state.entities[player.shipId];
         const tile = new Tile();
 
         tile.lifeTimeMs = 30 * 60 * 1000;
