@@ -1,98 +1,57 @@
 import { Client, Room } from "colyseus";
 import {
+  Arsenal,
   Body,
-  Projectile,
-  Entity,
+  CapacitorSystem,
+  Destructible,
+  DestructibleSystem,
+  Expireable,
+  ExpireableSystem,
   GameMessage,
   GameMessageType,
-  System,
-  getBulletOptions,
-  isProjectile,
-  isDestructible,
-  isExpireable,
-  isShip,
-  isWreckage,
-  P2PhysicsDriver,
+  PhysicsSystem,
+  PickupSystem,
   Player,
+  ProjectileCollisionSystem,
+  RoomState,
   Ship,
   Tile,
-  Wreckage,
+  VehicleSystem,
   Weapon,
-  IDestructible,
+  World,
+  Inventory,
 } from "colyseus-test-core";
-import { World } from "p2";
-import { detect } from "../helpers/detect";
-import { getShipThrust } from "../helpers/getShipThrust";
-import { getShipTurn } from "../helpers/getShipTurn";
 
-const PLAYER_SPAWN_TIMEOUT = 2000;
-
-const SHIP_ENERGY_PER_S = 20;
-const SHIP_ENERGY_COST_PER_THRUST_PER_S = 2;
-
-const PROJECTILE_BASE_DAMAGE = 25;
-
-export abstract class BaseRoom extends Room<System> {
-  private physics: P2PhysicsDriver;
-  private entitiesToAdd = new Set<Entity>();
-  private entitiesToRemove = new Set<Entity>();
+export abstract class BaseRoom extends Room<RoomState> {
+  protected world: World<{ vehicle: VehicleSystem; physics: PhysicsSystem }>;
 
   onCreate(options: any) {
-    const state = new System();
-    const world = new World({
-      gravity: [0, 0],
+    const state = new RoomState();
+    const world = new World(state.entities, {
+      vehicle: new VehicleSystem(),
+      physics: new PhysicsSystem(),
     });
 
-    world.sleepMode = World.BODY_SLEEPING;
-    world.defaultContactMaterial.restitution = 0.35;
+    this.world = world;
 
-    const physics = new P2PhysicsDriver({
-      state: state.entities,
-      world,
-      onCollisionStart: this.onCollisionStart,
-    });
+    this.world.registerPureSystem(
+      PickupSystem,
+      DestructibleSystem,
+      ProjectileCollisionSystem,
+      CapacitorSystem,
+      ExpireableSystem,
+    );
 
     this.setState(state);
     this.setPatchRate((1 / 30) * 1000);
     this.setSimulationInterval(this.update);
-    this.physics = physics;
-  }
-
-  onProjectileHit = (bullet: Projectile, destructible: IDestructible) => {
-    if (destructible.invulnerable) {
-      return;
-    }
-
-    this.removeEntity(bullet);
-
-    destructible.health -= PROJECTILE_BASE_DAMAGE;
-  };
-
-  onWreckageHit = (wreckage: Wreckage, ship: Ship) => {
-    const player = this.findPlayerByShip(ship);
-
-    this.removeEntity(wreckage);
-
-    if (player) {
-      player.scrap += 3;
-    }
-  };
-
-  onCollisionStart = (a: Body, b: Body) => {
-    detect(isProjectile, isDestructible, a, b, this.onProjectileHit);
-    detect(isWreckage, isShip, a, b, this.onWreckageHit);
-  };
-
-  addEntity(entity: Entity) {
-    this.entitiesToAdd.add(entity);
-  }
-
-  removeEntity(entity: Entity) {
-    this.entitiesToRemove.add(entity);
   }
 
   spawn(player: Player) {
     const ship = new Ship();
+    const shipDestructible = ship.getComponent(Destructible);
+    const shipBody = ship.getComponent(Body);
+    const arsenal = ship.getComponent(Arsenal);
     const weapon1 = new Weapon();
     const weapon2 = new Weapon();
 
@@ -100,24 +59,16 @@ export abstract class BaseRoom extends Room<System> {
     weapon2.energyCost = 5;
     weapon2.projectileVelocity = 10;
 
-    ship.weapons.push(weapon1, weapon2);
-    ship.activeWeapon = 0;
+    arsenal.weapons.push(weapon1, weapon2);
+    arsenal.activeWeapon = 0;
 
-    ship.x = (Math.random() - 0.5) * -5;
-    ship.y = (Math.random() - 0.5) * -5;
+    shipDestructible.health = 100;
+    shipBody.x = (Math.random() - 0.5) * -5;
+    shipBody.y = (Math.random() - 0.5) * -5;
 
     player.shipId = ship.id;
 
-    this.addEntity(ship);
-  }
-
-  spawnWreckage(ship: Ship) {
-    const wreckage = new Wreckage();
-
-    wreckage.x = ship.x;
-    wreckage.y = ship.y;
-
-    this.addEntity(wreckage);
+    this.world.addEntity(ship);
   }
 
   onJoin(client: Client) {
@@ -152,28 +103,37 @@ export abstract class BaseRoom extends Room<System> {
         const [x, y] = message[1].map(Math.round);
 
         const ship: Ship = this.state.entities[player.shipId];
+        const inventory = ship.getComponent(Inventory);
 
-        if (!ship || player.scrap <= 0) {
+        if (!ship || inventory.scrap <= 0) {
           break;
         }
 
         const tile = new Tile();
+        const shipBody = ship.getComponent(Body);
+        const tileBody = tile.getComponent(Body);
+        const tileExpireable = tile.getComponent(Expireable);
 
-        tile.lifeTimeMs = 30 * 60 * 1000;
-        tile.x = x;
-        tile.y = y;
+        tileExpireable.lifeTimeMs = 30 * 60 * 1000;
+        tileBody.x = x;
+        tileBody.y = y;
 
-        const queryWidth = tile.width / 2 - 0.01;
-        const queryHeight = tile.height / 2 - 0.01;
-        const query = this.physics.query(x, y, x + queryWidth, y + queryHeight);
+        const queryWidth = tileBody.width / 2 - 0.01;
+        const queryHeight = tileBody.height / 2 - 0.01;
+        const query = this.world.systems.physics.query(
+          x,
+          y,
+          x + queryWidth,
+          y + queryHeight,
+        );
 
         if (
           query.length === 0 &&
-          Math.abs(ship.x - tile.x) < 5 &&
-          Math.abs(ship.y - tile.y) < 5
+          Math.abs(shipBody.x - tileBody.x) < 5 &&
+          Math.abs(shipBody.y - tileBody.y) < 5
         ) {
-          this.addEntity(tile);
-          player.scrap -= 1;
+          this.world.addEntity(tile);
+          inventory.scrap -= 1;
         }
 
         break;
@@ -182,10 +142,11 @@ export abstract class BaseRoom extends Room<System> {
         const index = message[1];
         const player: Player = this.state.players[client.sessionId];
         const ship: Ship = this.state.entities[player.shipId];
-        const weapon = ship.weapons[index];
+        const arsenal = ship.getComponent(Arsenal);
+        const weapon = arsenal.weapons[index];
 
         if (weapon) {
-          ship.activeWeapon = index;
+          arsenal.activeWeapon = index;
         }
       }
       default:
@@ -209,7 +170,7 @@ export abstract class BaseRoom extends Room<System> {
       const ship: Ship = this.state.entities[player.shipId];
 
       if (ship) {
-        this.removeEntity(ship);
+        this.world.removeEntity(ship);
       }
 
       delete this.state.players[sessionId];
@@ -230,112 +191,16 @@ export abstract class BaseRoom extends Room<System> {
     return null;
   }
 
-  prune() {
-    const now = Date.now();
-
-    for (const entityId in this.state.entities) {
-      const entity: Entity = this.state.entities[entityId];
-
-      if (
-        (isExpireable(entity) &&
-          now - entity.createdTimeMs >= entity.lifeTimeMs) ||
-        (isDestructible(entity) && entity.health <= 0)
-      ) {
-        this.removeEntity(entity);
-
-        if (isShip(entity)) {
-          this.spawnWreckage(entity);
-
-          const player = this.findPlayerByShip(entity);
-
-          if (player) {
-            setTimeout(() => this.spawn(player), PLAYER_SPAWN_TIMEOUT);
-          }
-        }
-      }
-    }
-  }
-
-  update = (deltaTime: number) => {
-    const now = Date.now();
-    const deltaTimeS = deltaTime / 1000;
-
-    this.prune();
-
+  update = (deltaTimeMs: number) => {
     for (const client of this.clients) {
       const player: Player = this.state.players[client.sessionId];
       const ship: Ship = this.state.entities[player.shipId];
-      const { input: command } = player;
 
-      if (!ship) {
-        continue;
+      if (ship) {
+        this.world.systems.vehicle.applyInput(ship, player.input);
       }
-
-      if (command.thrustForward || command.thrustReverse) {
-        const thrust = getShipThrust(command);
-        const thrustCost =
-          Math.abs(thrust) * SHIP_ENERGY_COST_PER_THRUST_PER_S * deltaTimeS;
-
-        if (ship.energy >= thrustCost) {
-          ship.energy -= thrustCost;
-
-          this.physics.applyForceLocal(ship, 0, thrust);
-        }
-      }
-
-      if (command.turnLeft || command.turnRight) {
-        const turn = getShipTurn(command);
-
-        this.physics.rotate(ship, ship.angle + turn);
-      }
-
-      if (command.activateWeapon) {
-        const weapon = ship.weapons[ship.activeWeapon];
-
-        if (weapon) {
-          const {
-            energyCost,
-            fireRate,
-            lastFireTime,
-            projectileVelocity,
-          } = weapon;
-
-          if (
-            ship.energy >= energyCost &&
-            now - lastFireTime >= fireRate * 100
-          ) {
-            const bullet = new Projectile();
-
-            Object.assign(bullet, getBulletOptions(ship, projectileVelocity));
-
-            this.addEntity(bullet);
-
-            weapon.lastFireTime = now;
-            ship.energy -= energyCost;
-          }
-        }
-      }
-
-      ship.energy = Math.min(
-        Math.max(0, ship.energy + SHIP_ENERGY_PER_S * deltaTimeS),
-        100,
-      );
     }
 
-    this.entitiesToAdd.forEach(entity => {
-      this.state.entities[entity.id] = entity;
-    });
-    this.entitiesToAdd.clear();
-
-    this.entitiesToRemove.forEach(entity => {
-      delete this.state.entities[entity.id];
-    });
-    this.entitiesToRemove.clear();
-
-    this.physics.update(deltaTime);
+    this.world.update(deltaTimeMs);
   };
-
-  onDispose() {
-    this.physics.dispose();
-  }
 }

@@ -1,9 +1,11 @@
 import {
-  ICapacitor,
-  IDestructible,
-  IWeaponSystem,
   Player,
   Ship,
+  Entity,
+  Destructible,
+  Capacitor,
+  Arsenal,
+  Weapon,
 } from "colyseus-test-core";
 import { Meter, Root } from "colyseus-test-ui";
 import { Room } from "colyseus.js";
@@ -14,16 +16,24 @@ type AppProps = {
 };
 
 type AppState = {
-  playerShip: (IDestructible & ICapacitor & IWeaponSystem) | null;
+  energy: number;
+  health: number;
+  weapons: Weapon[];
+  activeWeapon: number;
 };
 
 enum AppActionTypes {
-  UpdatePlayerShip,
+  UpdatePlayerInfo,
 }
 
-type UpdatePlayerShip = {
-  type: AppActionTypes.UpdatePlayerShip;
-  payload: Ship;
+type UpdatePlayerInfo = {
+  type: AppActionTypes.UpdatePlayerInfo;
+  payload: {
+    energy: number;
+    health: number;
+    weapons: Weapon[];
+    activeWeapon: number;
+  };
 };
 
 function shallowEquals(
@@ -40,16 +50,14 @@ function shallowEquals(
   return true;
 }
 
-type AppAction = UpdatePlayerShip;
-
-const SHIP_CHANGE_KEYS = ["health", "energy", "activeWeapon"];
+type AppAction = UpdatePlayerInfo;
 
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
-    case AppActionTypes.UpdatePlayerShip:
+    case AppActionTypes.UpdatePlayerInfo:
       return {
         ...state,
-        playerShip: { ...action.payload },
+        ...action.payload,
       };
   }
   return state;
@@ -57,27 +65,47 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
 export function App(props: AppProps) {
   const [state, dispatch] = useReducer(appReducer, {
-    playerShip: null,
+    energy: 0,
+    health: 0,
+    weapons: [],
+    activeWeapon: -1,
   });
+  const updatePlayerShip = (
+    energy: number,
+    health: number,
+    weapons: Weapon[],
+    activeWeapon: number,
+  ) =>
+    dispatch({
+      type: AppActionTypes.UpdatePlayerInfo,
+      payload: {
+        energy,
+        health,
+        weapons,
+        activeWeapon,
+      },
+    });
 
   useEffect(() => {
     function onStateChange() {
       const player: Player = props.room.state.players[props.room.sessionId];
 
       if (player && player.shipId) {
-        const s = new Ship();
         const ship: Ship = props.room.state.entities[player.shipId];
+        const capacitor = Entity.getComponent(ship, Capacitor);
+        const destructible = Entity.getComponent(ship, Destructible);
+        const arsenal = Entity.getComponent(ship, Arsenal);
+        const onChange = () =>
+          updatePlayerShip(
+            capacitor.energy,
+            destructible.health,
+            arsenal.weapons,
+            arsenal.activeWeapon,
+          );
 
-        if (
-          ship &&
-          (!state.playerShip ||
-            !shallowEquals(ship, state.playerShip, SHIP_CHANGE_KEYS))
-        ) {
-          dispatch({
-            type: AppActionTypes.UpdatePlayerShip,
-            payload: ship,
-          });
-        }
+        destructible.onChange = onChange;
+        capacitor.onChange = onChange;
+        arsenal.onChange = onChange;
       }
     }
 
@@ -88,44 +116,29 @@ export function App(props: AppProps) {
 
   return (
     <Root>
-      {state.playerShip && (
-        <>
-          <Meter
-            color="#88ff33"
-            height={4}
-            progress={state.playerShip.health / 100}
-          />
-          <Meter
-            color="#3388ff"
-            height={4}
-            progress={state.playerShip.energy / 100}
-          />
-          <ul>
-            {state.playerShip.weapons.map((weapon, i) => (
-              <li key={i}>
-                <span
-                  style={{
-                    color:
-                      state.playerShip && state.playerShip.activeWeapon === i
-                        ? "red"
-                        : "inherit",
-                  }}
-                >
-                  Weapon {i}
-                </span>
-                <dl>
-                  <dt>Fire rate</dt>
-                  <dd>{weapon.fireRate}</dd>
-                </dl>
-                <dl>
-                  <dt>Energy cost</dt>
-                  <dd>{weapon.energyCost}</dd>
-                </dl>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+      <Meter color="#88ff33" height={4} progress={state.health / 100} />
+      <Meter color="#3388ff" height={4} progress={state.energy / 100} />
+      <ul>
+        {state.weapons.map((weapon, i) => (
+          <li key={i}>
+            <span
+              style={{
+                color: state.activeWeapon === i ? "red" : "inherit",
+              }}
+            >
+              Weapon {i}
+            </span>
+            <dl>
+              <dt>Fire rate</dt>
+              <dd>{weapon.fireRate}</dd>
+            </dl>
+            <dl>
+              <dt>Energy cost</dt>
+              <dd>{weapon.energyCost}</dd>
+            </dl>
+          </li>
+        ))}
+      </ul>
       <div>{`${process.env.REACT_APP_NAME} v${process.env.REACT_APP_VERSION}`}</div>
     </Root>
   );
