@@ -17,22 +17,20 @@ yarn dev:server & yarn dev:client
 
 ## Overview
 
-The project is a [Lerna](https://github.com/lerna/lerna) monorepo broken up into three major packages: `core`, `server`, and `client`.
+The project is a [Lerna](https://github.com/lerna/lerna) monorepo broken up into four major packages: `ecs`, `core`, `server`, and `client`.
 
-### Core
+### ECS
 
-The `core` package contains game state, logic, helpers, and the network protocol.
+The `ecs` package contains game state, logic, helpers, and the network protocol.
 
-#### Entity-Component System
-
-Game state and logic is organized using a simple [Entity-Component System](https://en.wikipedia.org/wiki/Entity_component_system) (ECS) architecture where:
+Game state and logic is organized using an [Entity-Component System](https://en.wikipedia.org/wiki/Entity_component_system) (ECS) architecture, where:
 
 * Each Colyseus room has a single `World` that controls a `MapSchema` of `Entity` instances.
 * Each game object is represented by an `Entity` and can contain one or more stateful `Component` instances.
 * `Component` instances are pure data and don't contain any functionality (i.e. they can't operate on their own data).
 * `Systems` operate on `Component` state.
 
-A system is a function that takes a World as its first argument. This function will be executed each tick when it is registered with a World. This is a **pure system** (although this is a misnomer - a pure system is not a pure function), and have the signature:
+A system is a function that takes a world as its first argument. This function will be executed each tick when it is registered with a world. This is a **pure system** (although this is a misnomer - a pure system is not a pure function), and have the signature:
 
 ```ts
 const mySystem = (world: World) => {
@@ -49,7 +47,7 @@ Below is a full example of a `World`, `System`, `Entity` and `Component` working
 ```ts
 import { Room } from "colyseus";
 import { Schema, type } from "@colyseus/schema";
-import { Component, Entity, World, System } from "colyseus-test-core";
+import { Component, Entity, World, System } from "colyseus-test-ecs";
 
 class Physical extends Component {
   @type("float32")
@@ -92,7 +90,7 @@ class MyRoom extends Room {
 }
 ```
 
-If your system needs to maintain state between ticks, you can extends the `System` class. A system might be stateful if it interacts with a third party (e.g. a physics library) or needs to store information between frames (e.g. a server message to be processed next tick). Pure systems should be favored over stateful systems where possible.
+If your system needs to maintain state between ticks, you can extends the `System` class. A stateful system could be required if it interacts with a third party (e.g. a physics library) or needs to store information between frames (e.g. a server message to be processed next tick). Pure systems should be favored over stateful systems where possible.
 
 ```ts
 class PhysicsSystem extends System {
@@ -129,6 +127,10 @@ if (Entity.hasComponent(entity, Physical)) {
   // ... 
 }
 ```
+
+### Core
+
+The `core` package contains game entities, components, and systems. In addition, `core` houses shared helpers and networking protocols used by both server and client packages.
 
 ### Server
 

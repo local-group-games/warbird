@@ -1,5 +1,5 @@
 {
-  "name": "colyseus-test-utils",
+  "name": "colyseus-test-ecs",
   "version": "0.9.0",
   "main": "dist/index.js",
   "types": "src/index.ts",
@@ -7,10 +7,11 @@
   "scripts": {
     "build": "tsc"
   },
-  "dependencies": {
-    "seedrandom": "^3.0.3"
-  },
   "devDependencies": {
-    "@types/seedrandom": "^2.4.28"
+    "@types/nanoid": "^2.0.0"
+  },
+  "dependencies": {
+    "@colyseus/schema": "^0.4.0",
+    "nanoid": "^2.0.4"
   }
 }

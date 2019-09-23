@@ -23,7 +23,21 @@ import {
 } from "colyseus-test-core";
 
 export abstract class BaseRoom extends Room<RoomState> {
-  protected world: World<{ vehicle: VehicleSystem; physics: PhysicsSystem }>;
+  private _world: World<{
+    vehicle: VehicleSystem;
+    physics: PhysicsSystem;
+  }> | null = null;
+
+  protected get world(): World<{
+    vehicle: VehicleSystem;
+    physics: PhysicsSystem;
+  }> {
+    if (!this._world) {
+      throw new Error(`World accessed before onCreate() was called.`);
+    }
+
+    return this._world;
+  }
 
   onCreate(options: any) {
     const state = new RoomState();
@@ -32,7 +46,7 @@ export abstract class BaseRoom extends Room<RoomState> {
       physics: new PhysicsSystem(),
     });
 
-    this.world = world;
+    this._world = world;
 
     this.world.registerPureSystem(
       PickupSystem,
@@ -102,10 +116,14 @@ export abstract class BaseRoom extends Room<RoomState> {
       case GameMessageType.PlaceTile: {
         const [x, y] = message[1].map(Math.round);
 
+        if (!player.shipId) {
+          break;
+        }
+
         const ship: Ship = this.state.entities[player.shipId];
         const inventory = ship.getComponent(Inventory);
 
-        if (!ship || inventory.scrap <= 0) {
+        if (inventory.scrap <= 0) {
           break;
         }
 
@@ -141,6 +159,11 @@ export abstract class BaseRoom extends Room<RoomState> {
       case GameMessageType.ChangeWeapon: {
         const index = message[1];
         const player: Player = this.state.players[client.sessionId];
+
+        if (!player.shipId) {
+          break;
+        }
+
         const ship: Ship = this.state.entities[player.shipId];
         const arsenal = ship.getComponent(Arsenal);
         const weapon = arsenal.weapons[index];
@@ -167,13 +190,16 @@ export abstract class BaseRoom extends Room<RoomState> {
     } catch (e) {
       const { sessionId } = client;
       const player: Player = this.state.players[sessionId];
-      const ship: Ship = this.state.entities[player.shipId];
 
-      if (ship) {
-        this.world.removeEntity(ship);
+      if (player.shipId) {
+        const ship: Ship = this.state.entities[player.shipId];
+
+        if (ship) {
+          this.world.removeEntity(ship);
+        }
+
+        delete this.state.players[sessionId];
       }
-
-      delete this.state.players[sessionId];
     }
   }
 
@@ -194,10 +220,13 @@ export abstract class BaseRoom extends Room<RoomState> {
   update = (deltaTimeMs: number) => {
     for (const client of this.clients) {
       const player: Player = this.state.players[client.sessionId];
-      const ship: Ship = this.state.entities[player.shipId];
 
-      if (ship) {
-        this.world.systems.vehicle.applyInput(ship, player.input);
+      if (player.shipId) {
+        const ship: Ship | undefined = this.state.entities[player.shipId];
+
+        if (ship) {
+          this.world.systems.vehicle.applyInput(ship, player.input);
+        }
       }
     }
 

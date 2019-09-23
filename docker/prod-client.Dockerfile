@@ -26,6 +26,7 @@ ADD packages/core ./packages/core
 ADD packages/client ./packages/client
 ADD packages/ui ./packages/ui
 ADD packages/utils ./packages/utils
+ADD packages/ecs ./packages/ecs
 
 # Fix npm warning
 RUN npm config set scripts-prepend-node-path true

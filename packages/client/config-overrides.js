@@ -7,6 +7,7 @@ const monorepoPackages = [
   "colyseus-test-core",
   "colyseus-test-ui",
   "colyseus-test-utils",
+  "colyseus-test-ecs",
 ];
 const monorepoWebpackAliases = monorepoPackages.reduce((acc, packageName) => {
   acc[packageName] = `${resolvePackageDirectory(packageName)}/src`;

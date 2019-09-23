@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@colyseus/schema": "^0.4.0",
+    "colyseus-test-ecs": "^0.9.0",
     "nanoid": "^2.0.4",
     "p2": "^0.7.1",
     "ts-mixer": "^4.0.0"

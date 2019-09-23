@@ -22,6 +22,7 @@ ADD bin ./bin
 ADD packages/core ./packages/core
 ADD packages/server ./packages/server
 ADD packages/utils ./packages/utils
+ADD packages/ecs ./packages/ecs
 
 # Fix npm warning
 RUN npm config set scripts-prepend-node-path true

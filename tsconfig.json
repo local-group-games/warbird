@@ -3,6 +3,11 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "target": "es2015",
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext"
   }
 }
