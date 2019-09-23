@@ -4,8 +4,8 @@ export enum EntityType {
   Tile,
   Ball,
   Ship,
-  Projectile,
-  Wreckage,
+  Bullet,
+  Wreck,
 }
 
 export function createIsEntity<T extends Entity>(type: EntityType) {

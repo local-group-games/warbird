@@ -1,10 +1,11 @@
-import { Projectile } from "colyseus-test-core";
+import { Body, Bullet, Entity } from "colyseus-test-core";
 import { CircleGeometry, Mesh, MeshStandardMaterial } from "three";
-import { RenderObject } from "../types";
 import { interpolateEntity } from "../helpers/interpolateEntity";
+import { RenderObject } from "../types";
 
-export function createProjectile(projectile: Projectile): RenderObject {
-  const geometry = new CircleGeometry(projectile.width / 3, 6);
+export function createProjectile(bullet: Bullet): RenderObject {
+  const body = Entity.getComponent(bullet, Body);
+  const geometry = new CircleGeometry(body.width / 3, 6);
   const material = new MeshStandardMaterial({
     color: 0xefdfaa,
     emissive: 0xefdfaa,
@@ -12,11 +13,11 @@ export function createProjectile(projectile: Projectile): RenderObject {
   });
   const mesh = new Mesh(geometry, material);
 
-  mesh.position.x = projectile.x;
-  mesh.position.y = projectile.y;
+  mesh.position.x = body.x;
+  mesh.position.y = body.y;
 
   return {
     object: mesh,
-    update: () => interpolateEntity(projectile, mesh),
+    update: () => interpolateEntity(body, mesh),
   };
 }

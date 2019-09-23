@@ -1,3 +1,5 @@
+export * from "./Component";
 export * from "./Entity";
 export * from "./game";
-export * from "./physics";
+export * from "./System";
+export * from "./World";

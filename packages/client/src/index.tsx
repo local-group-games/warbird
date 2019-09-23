@@ -4,16 +4,16 @@ import {
   command,
   Entity,
   isBall,
-  isBody,
   isProjectile,
   isShip,
   isTile,
-  isWreckage,
+  isWreck,
   placeTile,
   Player,
-  System,
+  RoomState,
 } from "colyseus-test-core";
 import { loadFont } from "colyseus-test-ui";
+import { waitMs } from "colyseus-test-utils";
 import { Client, Room } from "colyseus.js";
 import React from "react";
 import ReactDOM from "react-dom";
@@ -24,11 +24,6 @@ import {
   PerspectiveCamera,
   Scene,
   WebGLRenderer,
-  BoxGeometry,
-  MeshBasicMaterial,
-  BackSide,
-  Mesh,
-  OrthographicCamera,
 } from "three";
 import { createExplosion } from "./animations/explosion";
 import { App } from "./App";
@@ -38,10 +33,9 @@ import { createBall } from "./objects/ball";
 import { createProjectile } from "./objects/projectile";
 import { createShip } from "./objects/ship";
 import { createTile } from "./objects/tile";
-import { createWreckage } from "./objects/wreckage";
-import { Animation, RenderObject } from "./types";
-import { createStarFieldTexture } from "./textures/stars";
+import { createWreck } from "./objects/wreck";
 import { createSkyBox } from "./skybox";
+import { Animation, RenderObject } from "./types";
 
 const explosionDuration = 500;
 
@@ -59,10 +53,6 @@ async function preload() {
     "PragmataPro Mono Liga",
     "./assets/fonts/PragmataProMonoLiga.woff2",
   );
-}
-
-function waitMs(ms: number) {
-  return new Promise(res => setTimeout(res, ms));
 }
 
 function cacheSession(room: Room) {
@@ -189,16 +179,16 @@ async function main() {
   }
 
   const [room] = await Promise.all([
-    connect<System>(
+    connect<RoomState>(
       client,
       "main",
     ),
     preload(),
   ]);
 
-  const objectsByEntity = new Map<Body, RenderObject>();
+  const objectsByEntity = new Map<Entity, RenderObject>();
 
-  async function registerBody(entity: Body) {
+  async function registerObject(entity: Entity) {
     let object = objectsByEntity.get(entity);
 
     if (!object) {
@@ -210,8 +200,8 @@ async function main() {
         object = createBall(entity);
       } else if (isProjectile(entity)) {
         object = createProjectile(entity);
-      } else if (isWreckage(entity)) {
-        object = createWreckage(entity);
+      } else if (isWreck(entity)) {
+        object = createWreck(entity);
       } else {
         throw new Error(`Entity ${(entity as Entity).type} not supported.`);
       }
@@ -224,12 +214,12 @@ async function main() {
   }
 
   const onAdd = async (entity: Entity) => {
-    if (isBody(entity)) {
-      registerBody(entity);
+    if (Entity.hasComponent(entity, Body)) {
+      registerObject(entity);
     }
   };
   const onRemove = (entity: Entity) => {
-    if (isBody(entity)) {
+    if (Entity.hasComponent(entity, Body)) {
       const object = objectsByEntity.get(entity);
 
       if (object) {
@@ -240,7 +230,12 @@ async function main() {
     }
 
     if (isShip(entity)) {
-      const explosion = createExplosion(entity.x, entity.y, explosionDuration);
+      const shipBody = Entity.getComponent(entity, Body);
+      const explosion = createExplosion(
+        shipBody.x,
+        shipBody.y,
+        explosionDuration,
+      );
 
       animations.add(explosion);
       scene.add(explosion.object);

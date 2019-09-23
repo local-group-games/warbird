@@ -1,7 +1,13 @@
 import { type } from "@colyseus/schema";
-import { Entity } from "../Entity";
+import { Component } from "../../Component";
+import { Entity } from "../../Entity";
+import { ComponentType } from "../ComponentType";
 
-export class Body extends Entity {
+export class Body extends Component {
+  getType() {
+    return ComponentType.Body;
+  }
+
   @type("float32")
   x: number = 0;
   @type("float32")
@@ -23,7 +29,6 @@ export class Body extends Entity {
   collisionGroup = 0;
   collisionMask = 0;
   sensor = false;
-}
 
-export const isBody = (entity: any): entity is Body =>
-  typeof entity.x === "number";
+  collisions = new Set<Entity>();
+}

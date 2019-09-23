@@ -1,4 +1,4 @@
-import { Ball, Tile } from "colyseus-test-core";
+import { Ball, Tile, Destructible, Body } from "colyseus-test-core";
 import { BaseRoom } from "./BaseRoom";
 
 const map: number[][] = [
@@ -17,22 +17,20 @@ export class MainRoom extends BaseRoom {
 
     for (const [x, y] of map) {
       const tile = new Tile();
-
-      tile.x = x;
-      tile.y = y;
-
-      tile.invulnerable = true;
-
-      this.addEntity(tile);
+      const tileBody = tile.getComponent(Body);
+      const tileDestructible = tile.getComponent(Destructible);
+      tileBody.x = x;
+      tileBody.y = y;
+      tileDestructible.invulnerable = true;
+      this.world.addEntity(tile);
     }
 
     for (let i = 0; i < 10; i++) {
       const ball = new Ball();
-
-      ball.x = Math.random() * -10;
-      ball.y = Math.random() * -10;
-
-      this.addEntity(ball);
+      const ballBody = ball.getComponent(Body);
+      ballBody.x = Math.random() * -10;
+      ballBody.y = Math.random() * -10;
+      this.world.addEntity(ball);
     }
   }
 }

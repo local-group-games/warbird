@@ -11,8 +11,6 @@ export class Player extends Schema {
   connected: boolean = false;
   @type("string")
   shipId: string | null = null;
-  @type("int16")
-  scrap: number = 0;
 
   input: PlayerInputs = {
     thrustForward: false,
