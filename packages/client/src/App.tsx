@@ -112,7 +112,7 @@ export function App(props: AppProps) {
     props.room.onStateChange(onStateChange);
 
     return () => props.room.onStateChange.remove(onStateChange);
-  }, [props.room, state]);
+  }, [props.room]);
 
   return (
     <Root>

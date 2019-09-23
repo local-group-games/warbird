@@ -64,6 +64,13 @@ export abstract class Entity extends Schema {
     return Entity.prototype.getComponent.call(entity, ctor) as C;
   }
 
+  static tryGetComponent<C extends Component>(
+    entity: Entity,
+    ctor: Constructor<C>,
+  ) {
+    return Entity.prototype.tryGetComponent.call(entity, ctor) as C;
+  }
+
   static hasComponent<C extends Component>(
     entity: Entity,
     ctor: Constructor<C>,
