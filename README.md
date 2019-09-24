@@ -70,7 +70,8 @@ class MyRoom extends Room {
     super(options);
 
     const state = new RoomState();
-    // Create the World instance. The constructor takes a MapSchema<Entity> as its only argument.
+    // Create the World instance. The constructor requires a Clock instance and a
+    // MapSchema<Entity>.
     const world = new World(this.clock, state.entities);
 
     // Register the pure rotator system.
