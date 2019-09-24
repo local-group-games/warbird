@@ -7,9 +7,10 @@ import {
   Arsenal,
   Weapon,
 } from "@warbird/core";
-import { Meter, Root } from "@warbird/ui";
+import { Meter, Root, ItemButton } from "@warbird/ui";
 import { Room } from "colyseus.js";
 import React, { useEffect, useReducer } from "react";
+import { css } from "emotion";
 
 type AppProps = {
   room: Room;
@@ -116,30 +117,98 @@ export function App(props: AppProps) {
 
   return (
     <Root>
-      <Meter color="#88ff33" height={4} progress={state.health / 100} />
-      <Meter color="#3388ff" height={4} progress={state.energy / 100} />
-      <ul>
-        {state.weapons.map((weapon, i) => (
-          <li key={i}>
-            <span
-              style={{
-                color: state.activeWeapon === i ? "red" : "inherit",
-              }}
-            >
-              Weapon {i}
-            </span>
-            <dl>
-              <dt>Fire rate</dt>
-              <dd>{weapon.fireRate}</dd>
-            </dl>
-            <dl>
-              <dt>Energy cost</dt>
-              <dd>{weapon.energyCost}</dd>
-            </dl>
-          </li>
-        ))}
-      </ul>
-      <div>{`${process.env.REACT_APP_NAME} v${process.env.REACT_APP_VERSION}`}</div>
+      <div
+        className={css`
+          flex: 1;
+          pointer-events: none;
+        `}
+      ></div>
+      <div
+        className={css`
+          flex: 8;
+          pointer-events: none;
+        `}
+      ></div>
+      <div
+        className={css`
+          display: flex;
+          flex: 1;
+          flex-direction: row;
+          align-items: center;
+          pointer-events: none;
+        `}
+      >
+        <div
+          className={css`
+            flex: 1;
+            text-align: center;
+          `}
+        >{`${process.env.REACT_APP_NAME} v${process.env.REACT_APP_VERSION}`}</div>
+        <div
+          className={css`
+            flex: 3;
+          `}
+        >
+          <Meter
+            color="#88ff33"
+            height={5}
+            progress={state.health / 100}
+            className={css`
+              margin-bottom: 4px;
+            `}
+          />
+          <Meter color="#3388ff" height={5} progress={state.energy / 100} />
+        </div>
+        <ul
+          className={css`
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+          `}
+        >
+          {state.weapons.map((weapon, i) => (
+            <li key={i}>
+              <ItemButton
+                className={css`
+                  background-color: ${state.activeWeapon === i
+                    ? "#666"
+                    : "#444"};
+                `}
+              >
+                <dl
+                  className={css`
+                    margin: 0;
+
+                    > dt {
+                      display: none;
+                    }
+
+                    > dd {
+                      display: inline-block;
+                      margin: 0;
+                    }
+
+                    > dd ~ dd {
+                      &:before {
+                        content: "/";
+                      }
+                    }
+                  `}
+                >
+                  <dt>Fire rate</dt>
+                  <dd>{weapon.fireRate}</dd>
+                  <dt>Energy cost</dt>
+                  <dd>{weapon.energyCost}</dd>
+                </dl>
+              </ItemButton>
+            </li>
+          ))}
+        </ul>
+      </div>
     </Root>
   );
 }

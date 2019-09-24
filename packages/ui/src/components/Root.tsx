@@ -12,6 +12,8 @@ export function Root(props: { children: ReactNode }) {
         color: #ffffff;
         font-size: 12px;
         font-family: "PragmataPro Mono", monospace;
+        display: flex;
+        flex-direction: column;
       `}
       {...props}
     />
