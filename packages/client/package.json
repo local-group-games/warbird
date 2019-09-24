@@ -1,6 +1,6 @@
 {
   "name": "@warbird/client",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
@@ -11,9 +11,9 @@
   "dependencies": {
     "@types/react": "^16.9.2",
     "@types/react-dom": "^16.9.0",
-    "@warbird/core": "0.11.0",
-    "@warbird/ui": "0.11.0",
-    "@warbird/utils": "0.11.0",
+    "@warbird/core": "0.11.1",
+    "@warbird/ui": "0.11.1",
+    "@warbird/utils": "0.11.1",
     "colyseus.js": "^0.11.0",
     "emotion": "^10.0.17",
     "react": "^16.9.0",
