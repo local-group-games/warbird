@@ -25,12 +25,15 @@ The `ecs` package contains tools to help organize server-side game logic. The ga
 * `Component` instances are pure data and don't contain any functionality (i.e. they can't operate on their own data).
 * `Systems` operate on `Component` state.
 
-A system is a function that takes a world as its first argument. This function will be executed each tick when it is registered with a world. This is a **pure system** (although this is a misnomer - a pure system is not a pure function), and have the signature:
+`World` lets you register systems as classes or functions. A class system must inherit from the base `System` class. Systems registered with a world will be executed each tick. A functional system is called a **pure system** (although this is a misnomer - a pure system is not a pure function). A class system is called a **stateful system**. Below is an example pure system.
 
 ```ts
 const mySystem: System = world => {
   const entities = world.getEntitiesByComponent(Pickup);
-  // ...
+  
+  for (const entity of entities) {
+    world.removeEntity(entity);
+  }
 }
 
 world.registerPureSystem(mySystem);
