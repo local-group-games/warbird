@@ -1,14 +1,14 @@
 import { WeaponProps } from "@warbird/core";
 import { ItemButton } from "@warbird/ui";
 import { css } from "emotion";
-import React from "react";
+import React, { memo } from "react";
 
 export type ItemsProps = {
   activeWeapon: number;
   weapons: WeaponProps[];
 };
 
-export function Items(props: ItemsProps) {
+export const Items = memo((props: ItemsProps) => {
   return (
     <ul
       className={css`
@@ -58,4 +58,4 @@ export function Items(props: ItemsProps) {
       ))}
     </ul>
   );
-}
+});

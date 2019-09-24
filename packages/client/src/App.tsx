@@ -14,138 +14,56 @@ import {
 import { Root } from "@warbird/ui";
 import { Room } from "colyseus.js";
 import { css } from "emotion";
-import React, { useEffect, useReducer } from "react";
+import React, { useEffect, useReducer, useRef } from "react";
 import { Items } from "./ui/Items";
 import { Meters } from "./ui/Meters";
+
+const SHIP_CHANGE_COMPONENT_TYPES = [Arsenal, Capacitor, Destructible];
 
 type AppProps = {
   room: Room<RoomState>;
 };
 
-type AppState = {
+type PlayerInfo = {
   capacitor: CapacitorProps;
   destructible: DestructibleProps;
   arsenal: ArsenalProps;
 };
 
-enum AppActionTypes {
-  UpdatePlayerInfo,
-}
-
-type UpdatePlayerInfo = {
-  type: AppActionTypes.UpdatePlayerInfo;
-  payload: {
-    capacitor: CapacitorProps;
-    destructible: DestructibleProps;
-    arsenal: ArsenalProps;
-  };
+type AppState = {
+  players: PlayerInfo[];
 };
 
-type AppAction = UpdatePlayerInfo;
-
-function appReducer(state: AppState, action: AppAction): AppState {
-  switch (action.type) {
-    case AppActionTypes.UpdatePlayerInfo:
-      return {
-        ...state,
-        ...action.payload,
-      };
-  }
-  return state;
-}
-
-function updatePlayerInfo(
-  capacitor: CapacitorProps,
-  destructible: DestructibleProps,
-  arsenal: Arsenal,
-): UpdatePlayerInfo {
-  return {
-    type: AppActionTypes.UpdatePlayerInfo,
-    payload: {
-      capacitor,
-      destructible,
-      arsenal,
-    },
-  };
-}
-
 export function App(props: AppProps) {
-  const [state, dispatch] = useReducer(appReducer, {
-    capacitor: {
-      energy: 0,
-      energyPerS: 0,
-    },
-    destructible: {
-      health: 0,
-      invulnerable: false,
-    },
-    arsenal: {
-      weapons: [],
-      activeWeapon: -1,
-    },
-  });
+  const { current: state } = useRef<any>({ entities: {}, players: [] });
+  const [, forceUpdate] = useReducer((x, _: void) => x + 1, 0);
 
   useEffect(() => {
-    let player: Player;
-    let arsenal: Arsenal;
-    let capacitor: Capacitor;
-    let destructible: Destructible;
-
-    function onComponentChange() {
-      dispatch(updatePlayerInfo(capacitor, destructible, arsenal));
-    }
-
-    function subscribeToPlayerShip(ship: Ship) {
-      arsenal = Entity.getComponent(ship, Arsenal);
-      capacitor = Entity.getComponent(ship, Capacitor);
-      destructible = Entity.getComponent(ship, Destructible);
-
-      destructible.onChange = onComponentChange;
-      capacitor.onChange = onComponentChange;
-      arsenal.onChange = onComponentChange;
-    }
-
-    function onPlayerAdd(p: Player) {
-      if (p.id === props.room.sessionId) {
-        player = p;
-        player.onChange = onPlayerChange;
-
-        if (player.shipId) {
-          const ship: Ship = props.room.state.entities[player.shipId];
-
-          if (ship) {
-            subscribeToPlayerShip(ship);
-          }
-        }
-      }
-    }
-
-    function onPlayerChange(changes: DataChange<any>[]) {
-      const shipIdChange = changes.find(change => change.field === "shipId");
-
-      if (shipIdChange) {
-        const ship: Ship = props.room.state.entities[shipIdChange.value];
-
-        if (ship) {
-          subscribeToPlayerShip(ship);
-        }
-      }
-    }
-
-    props.room.state.players.onAdd = onPlayerAdd;
-
-    for (const playerId in props.room.state.players) {
-      onPlayerAdd(props.room.state.players[playerId]);
-    }
-
-    return () => {
-      delete props.room.state.players.onAdd;
-      delete player.onChange;
-      delete arsenal.onChange;
-      delete capacitor.onChange;
-      delete destructible.onChange;
-    };
+    props.room.onStateChange(s => {
+      Object.assign(state, s);
+      forceUpdate();
+    });
   }, [props.room]);
+
+  const player = state.players[props.room.sessionId];
+
+  if (!player) return null;
+
+  const ship = state.entities[player.shipId];
+
+  if (!ship) return null;
+
+  const destructible = Entity.getComponent(ship, Destructible);
+  const arsenal = Entity.getComponent(ship, Arsenal);
+  const capacitor = Entity.getComponent(ship, Capacitor);
+  const version = (
+    <div
+      className={css`
+        flex: 1;
+        text-align: center;
+      `}
+    >{`${process.env.REACT_APP_NAME} v${process.env.REACT_APP_VERSION}`}</div>
+  );
 
   return (
     <Root>
@@ -170,20 +88,9 @@ export function App(props: AppProps) {
           pointer-events: none;
         `}
       >
-        <div
-          className={css`
-            flex: 1;
-            text-align: center;
-          `}
-        >{`${process.env.REACT_APP_NAME} v${process.env.REACT_APP_VERSION}`}</div>
-        <Meters
-          health={state.destructible.health}
-          energy={state.capacitor.energy}
-        />
-        <Items
-          activeWeapon={state.arsenal.activeWeapon}
-          weapons={state.arsenal.weapons}
-        />
+        {version}
+        <Meters health={destructible.health} energy={capacitor.energy} />
+        <Items activeWeapon={arsenal.activeWeapon} weapons={arsenal.weapons} />
       </div>
     </Root>
   );

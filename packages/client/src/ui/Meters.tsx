@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { css } from "emotion";
 import { Meter } from "@warbird/ui";
 
@@ -7,7 +7,7 @@ export type MetersProps = {
   energy: number;
 };
 
-export function Meters(props: MetersProps) {
+export const Meters = memo((props: MetersProps) => {
   return (
     <div
       className={css`
@@ -25,4 +25,4 @@ export function Meters(props: MetersProps) {
       <Meter color="#3388ff" height={5} progress={props.energy / 100} />
     </div>
   );
-}
+});

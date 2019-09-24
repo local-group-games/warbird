@@ -1,6 +1,6 @@
 # warbird
 
-![](https://github.com/local-group-games/warbird/workflows/.github/workflows/deploy.yml/badge.svg)
+![](https://github.com/local-group-games/warbird/workflows/.github/workflows/deploy-on-release.yml/badge.svg)
 
 ## Description
 
