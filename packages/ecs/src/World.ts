@@ -1,3 +1,4 @@
+import { Clock, Server } from "colyseus";
 import { MapSchema } from "@colyseus/schema";
 import { ChangeTree } from "@colyseus/schema/lib/ChangeTree";
 import { Component } from "./Component";
@@ -13,11 +14,6 @@ export enum EntityChangeType {
 
 export type ChangeMap = { [K in EntityChangeType]: Set<Entity> };
 
-export type Clock = {
-  now: number;
-  deltaTimeMs: number;
-};
-
 export class World<S extends { [key: string]: System } = {}> {
   private readonly schema: MapSchema<Entity>;
   private readonly cache = new Map<string, Entity[]>();
@@ -26,10 +22,7 @@ export class World<S extends { [key: string]: System } = {}> {
   private adding = new Set<Entity>();
   private removing = new Set<Entity>();
 
-  readonly clock: Clock = {
-    now: 0,
-    deltaTimeMs: 0,
-  };
+  readonly clock: Clock;
   readonly changes: ChangeMap = {
     added: new Set<Entity>(),
     updated: new Set<Entity>(),
@@ -37,7 +30,8 @@ export class World<S extends { [key: string]: System } = {}> {
   };
   readonly systems: S;
 
-  constructor(schema: MapSchema<Entity>, systems?: S) {
+  constructor(clock: Clock, schema: MapSchema<Entity>, systems?: S) {
+    this.clock = clock;
     this.schema = schema;
     this.systems = systems as S;
 
@@ -93,10 +87,7 @@ export class World<S extends { [key: string]: System } = {}> {
     this.entities.delete(entity.id);
   }
 
-  update(deltaTimeMs: number) {
-    this.clock.now += deltaTimeMs;
-    this.clock.deltaTimeMs = deltaTimeMs;
-
+  tick() {
     for (const systemKey in this.systems) {
       this.systems[systemKey].execute();
     }

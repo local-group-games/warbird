@@ -41,7 +41,7 @@ export abstract class BaseRoom extends Room<RoomState> {
 
   onCreate(options: any) {
     const state = new RoomState();
-    const world = new World(state.entities, {
+    const world = new World(this.clock, state.entities, {
       vehicle: new VehicleSystem(),
       physics: new PhysicsSystem(),
     });
@@ -217,7 +217,7 @@ export abstract class BaseRoom extends Room<RoomState> {
     return null;
   }
 
-  update = (deltaTimeMs: number) => {
+  update = () => {
     for (const client of this.clients) {
       const player: Player = this.state.players[client.sessionId];
 
@@ -230,6 +230,6 @@ export abstract class BaseRoom extends Room<RoomState> {
       }
     }
 
-    this.world.update(deltaTimeMs);
+    this.world.tick();
   };
 }

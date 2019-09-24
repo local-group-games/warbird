@@ -77,7 +77,7 @@ class MyRoom extends Room {
 
     const state = new RoomState();
     // Create the World instance. The constructor takes a MapSchema<Entity> as its only argument.
-    const world = new World(state.entities);
+    const world = new World(this.clock, state.entities);
 
     // Register the pure rotator system.
     world.addPureSystem(rotator);
@@ -85,7 +85,7 @@ class MyRoom extends Room {
     world.addEntity(new Bunny());
 
     // Step the world.
-    this.setSimulationInterval(dt => world.update(dt));
+    this.setSimulationInterval(dt => world.tick());
   }
 }
 ```
@@ -94,7 +94,7 @@ If your system needs to maintain state between ticks, you can extends the `Syste
 
 ```ts
 class PhysicsSystem extends System {
-  execute(deltaTimeMs: number, changes: ChangeMap) {
+  execute() {
     const entities = this.world.getEntitiesByComponent(Physical);
 
     // do stuff with entities

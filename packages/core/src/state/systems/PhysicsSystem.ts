@@ -170,7 +170,7 @@ export class PhysicsSystem extends System {
   }
 
   execute() {
-    const deltaTimeS = this.world.clock.deltaTimeMs / 1000;
+    const deltaTimeS = this.world.clock.deltaTime / 1000;
     const entities = this.world.getEntitiesByComponent(Body);
 
     for (const entity of this.world.changes.removed) {

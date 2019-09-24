@@ -29,7 +29,7 @@ export class VehicleSystem extends System<{ physics: PhysicsSystem }> {
   }
 
   execute() {
-    const deltaTimeS = this.world.clock.deltaTimeMs / 1000;
+    const deltaTimeS = this.world.clock.deltaTime / 1000;
 
     let pair: [Entity, PlayerInputs] | undefined;
 
@@ -61,7 +61,8 @@ export class VehicleSystem extends System<{ physics: PhysicsSystem }> {
         if (weapon) {
           if (
             capacitor.energy >= weapon.energyCost &&
-            this.world.clock.now - weapon.lastFireTime >= weapon.fireRate * 100
+            this.world.clock.currentTime - weapon.lastFireTime >=
+              weapon.fireRate * 100
           ) {
             const bullet = new Bullet();
             const bulletBody = bullet.getComponent(Body);
@@ -80,7 +81,7 @@ export class VehicleSystem extends System<{ physics: PhysicsSystem }> {
 
             this.world.addEntity(bullet);
 
-            weapon.lastFireTime = this.world.clock.now;
+            weapon.lastFireTime = this.world.clock.currentTime;
             capacitor.energy -= weapon.energyCost;
           }
         }
