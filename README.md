@@ -7,12 +7,9 @@ This is an example project of how one might set up an action MOG using [Colyseus
 ## Setup
 
 ```sh
-# Install project dependencies
-yarn
-# Start Docker Compose development workflow
-yarn dev
-# OR host development workflow
-yarn dev:server & yarn dev:client
+yarn                              # Install project dependencies
+yarn dev                          # Docker Compose development workflow
+yarn dev:server & yarn dev:client # Host development workflow
 ```
 
 ## Overview
@@ -21,9 +18,7 @@ The project is a [Lerna](https://github.com/lerna/lerna) monorepo broken up into
 
 ### ECS
 
-The `ecs` package contains game state, logic, helpers, and the network protocol.
-
-Game state and logic is organized using an [Entity-Component System](https://en.wikipedia.org/wiki/Entity_component_system) (ECS) architecture, where:
+The `ecs` package contains tools to help organize server-side game logic. The game is built using the [Entity-Component System](https://en.wikipedia.org/wiki/Entity_component_system) (ECS) architecture, where:
 
 * Each Colyseus room has a single `World` that controls a `MapSchema` of `Entity` instances.
 * Each game object is represented by an `Entity` and can contain one or more stateful `Component` instances.
@@ -33,10 +28,9 @@ Game state and logic is organized using an [Entity-Component System](https://en.
 A system is a function that takes a world as its first argument. This function will be executed each tick when it is registered with a world. This is a **pure system** (although this is a misnomer - a pure system is not a pure function), and have the signature:
 
 ```ts
-const mySystem = (world: World) => {
+const mySystem: System = world => {
   const entities = world.getEntitiesByComponent(Pickup);
-
-  // do stuff with Pickup entities
+  // ...
 }
 
 world.registerPureSystem(mySystem);
@@ -109,7 +103,7 @@ class PhysicsSystem extends System {
 Stateful systems are registered when the world is created and cannot be added dynamically.
 
 ```ts
-const world = new World(state.entities, { physics: new PhysicsSystem() });
+const world = new World(room.clock, state.entities, { physics: new PhysicsSystem() });
 ```
 
 To reference a stateful system from another system, use `world.systems`:
