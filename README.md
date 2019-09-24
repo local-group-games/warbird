@@ -1,5 +1,7 @@
 # warbird
 
+![](https://github.com/local-group-games/warbird/workflows/.github/workflows/deploy.yml/badge.svg)
+
 ## Description
 
 This is an example project of how one might set up an action MOG using [Colyseus](https://colyseus.io) for networking, [p2.js](https://github.com/schteppe/p2.js) for physics, and [three.js](https://threejs.org) for rendering.
