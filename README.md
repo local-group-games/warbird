@@ -1,4 +1,4 @@
-# colyseus-test
+# warbird
 
 ## Description
 
@@ -16,19 +16,19 @@ yarn dev:server & yarn dev:client # Host development workflow
 
 The project is a [Lerna](https://github.com/lerna/lerna) monorepo broken up into four major packages: `ecs`, `core`, `server`, and `client`.
 
-### [`colyseus-test-ecs`](packages/ecs)
+### [`@warbird/ecs`](packages/ecs)
 
-The [`colyseus-test-ecs`](packages/ecs) package contains tools to help organize server-side game logic using the using the [Entity-Component System](https://en.wikipedia.org/wiki/Entity_component_system) (ECS) pattern.
+The [`@warbird/ecs`](packages/ecs) package contains tools to help organize server-side game logic using the using the [Entity-Component System](https://en.wikipedia.org/wiki/Entity_component_system) (ECS) pattern.
 
-### [`colyseus-test-core`](packages/core)
+### [`@warbird/core`](packages/core)
 
-The [`colyseus-test-core`](packages/core) package contains game entities, components, and systems. In addition, `core` houses shared helpers and networking protocols used by both server and client packages.
+The [`@warbird/core`](packages/core) package contains game entities, components, and systems. In addition, `core` houses shared helpers and networking protocols used by both server and client packages.
 
-### [`colyseus-test-server`](packages/server)
+### [`@warbird/server`](packages/server)
 
-The [`colyseus-test-server`](packages/server) package houses the game server that contains a single room used in each arena. Currently, the server does not scale and is limited to a single room.
+The [`@warbird/server`](packages/server) package houses the game server that contains a single room used in each arena. Currently, the server does not scale and is limited to a single room.
 
-### [`colyseus-test-client`](packages/client)
+### [`@warbird/client`](packages/client)
 
-The [`colyseus-test-client`](packages/client) package houses a web client for the game. The game is rendered using three.js and the UI is built with React.
+The [`@warbird/client`](packages/client) package houses a web client for the game. The game is rendered using three.js and the UI is built with React.
 

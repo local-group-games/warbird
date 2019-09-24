@@ -1,4 +1,4 @@
-import { Body } from "colyseus-test-core";
+import { Body } from "@warbird/core";
 import { Math, Object3D } from "three";
 
 export function interpolateEntity(body: Body, object: Object3D) {

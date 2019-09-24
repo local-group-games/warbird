@@ -1,4 +1,4 @@
-import { PureSystem } from "colyseus-test-ecs";
+import { PureSystem } from "@warbird/ecs";
 import { Body, Inventory, Vehicle } from "../components";
 import { Pickup } from "../components/Pickup";
 

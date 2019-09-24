@@ -1,5 +1,5 @@
 import { type } from "@colyseus/schema";
-import { Component } from "colyseus-test-ecs";
+import { Component } from "@warbird/ecs";
 import { ComponentType } from "../ComponentType";
 
 export class Pickup extends Component {

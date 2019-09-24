@@ -1,4 +1,4 @@
-import { Ball, Tile, Destructible, Body } from "colyseus-test-core";
+import { Ball, Tile, Destructible, Body } from "@warbird/core";
 import { BaseRoom } from "./BaseRoom";
 
 const map: number[][] = [

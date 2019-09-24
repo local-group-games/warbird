@@ -1,4 +1,4 @@
-import { PureSystem } from "colyseus-test-ecs";
+import { PureSystem } from "@warbird/ecs";
 import { Body, Destructible } from "../components";
 import { Projectile } from "../components/Projectile";
 

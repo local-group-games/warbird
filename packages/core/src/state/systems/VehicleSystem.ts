@@ -1,4 +1,4 @@
-import { Entity, System } from "colyseus-test-ecs";
+import { Entity, System } from "@warbird/ecs";
 import { PlayerInputs } from "../../protocol/input";
 import { Arsenal, Body, Capacitor, Expireable } from "../components";
 import { Bullet } from "../entities";

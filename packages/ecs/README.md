@@ -1,6 +1,6 @@
-# colyseus-test-ecs
+# @warbird/ecs
 
-The `colyseus-test-ecs` package contains tools to help organize server-side game logic in a Colyseus application. Games are built using the [Entity-Component System](https://en.wikipedia.org/wiki/Entity_component_system) (ECS) architecture, where:
+The `@warbird/ecs` package contains tools to help organize server-side game logic in a Colyseus application. Games are built using the [Entity-Component System](https://en.wikipedia.org/wiki/Entity_component_system) (ECS) architecture, where:
 
 * Each Colyseus room has a single `World` that controls a `MapSchema` of `Entity` instances.
 * Each game object is represented by an `Entity` and can contain one or more stateful `Component` instances.
@@ -26,7 +26,7 @@ Below is a full example of a `World`, `System`, `Entity` and `Component` working
 ```ts
 import { Room } from "colyseus";
 import { Schema, type } from "@colyseus/schema";
-import { Component, Entity, World, System } from "colyseus-test-ecs";
+import { Component, Entity, World, System } from "@warbird/ecs";
 
 class Physical extends Component {
   @type("float32")

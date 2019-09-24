@@ -20,7 +20,7 @@ import {
   Weapon,
   World,
   Inventory,
-} from "colyseus-test-core";
+} from "@warbird/core";
 
 export abstract class BaseRoom extends Room<RoomState> {
   private _world: World<{

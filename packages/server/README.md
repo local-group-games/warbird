@@ -1,1 +1,1 @@
-# colyseus-test-server
+# @warbird/server

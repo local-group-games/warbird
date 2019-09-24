@@ -1,1 +1,1 @@
-# colyseus-test-core
+# @warbird/core

@@ -4,10 +4,10 @@ const ModuleScopePlugin = require("react-dev-utils/ModuleScopePlugin");
 const resolvePackageDirectory = package =>
   path.dirname(require.resolve(`${package}/package.json`));
 const monorepoPackages = [
-  "colyseus-test-core",
-  "colyseus-test-ui",
-  "colyseus-test-utils",
-  "colyseus-test-ecs",
+  "@warbird/core",
+  "@warbird/ui",
+  "@warbird/utils",
+  "@warbird/ecs",
 ];
 const monorepoWebpackAliases = monorepoPackages.reduce((acc, packageName) => {
   acc[packageName] = `${resolvePackageDirectory(packageName)}/src`;

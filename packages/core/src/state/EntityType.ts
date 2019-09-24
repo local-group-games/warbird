@@ -1,4 +1,4 @@
-import { Entity } from "colyseus-test-ecs";
+import { Entity } from "@warbird/ecs";
 
 export enum EntityType {
   Tile,

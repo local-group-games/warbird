@@ -1,4 +1,4 @@
-import { PlayerInputs } from "colyseus-test-core";
+import { PlayerInputs } from "@warbird/core";
 
 export interface KeyBindings {
   [keyCode: string]: keyof PlayerInputs;

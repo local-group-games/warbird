@@ -1,4 +1,4 @@
-import { Entity } from "colyseus-test-ecs";
+import { Entity } from "@warbird/ecs";
 import { CollisionGroup } from "../CollisionGroup";
 import { Destructible, Inventory, Vehicle } from "../components";
 import { Arsenal } from "../components/Arsenal";

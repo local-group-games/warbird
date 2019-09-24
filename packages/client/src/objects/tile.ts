@@ -1,4 +1,4 @@
-import { Tile, Body, Entity, Destructible } from "colyseus-test-core";
+import { Tile, Body, Entity, Destructible } from "@warbird/core";
 import { BoxGeometry, Material, Math, Mesh, MeshStandardMaterial } from "three";
 import { RenderObject } from "../types";
 

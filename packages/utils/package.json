@@ -1,5 +1,5 @@
 {
-  "name": "colyseus-test-utils",
+  "name": "@warbird/utils",
   "version": "0.10.0",
   "main": "dist/index.js",
   "types": "src/index.ts",

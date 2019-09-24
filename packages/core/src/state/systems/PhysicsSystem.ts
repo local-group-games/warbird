@@ -1,4 +1,4 @@
-import { ChangeMap, Entity, System } from "colyseus-test-ecs";
+import { ChangeMap, Entity, System } from "@warbird/ecs";
 import { AABB, Body as P2Body, Box, World as P2World } from "p2";
 import { Body } from "../components";
 

@@ -1,4 +1,4 @@
-import { Wreck, Entity, Body } from "colyseus-test-core";
+import { Wreck, Entity, Body } from "@warbird/core";
 import { Mesh, MeshStandardMaterial, OctahedronGeometry } from "three";
 import { RenderObject } from "../types";
 

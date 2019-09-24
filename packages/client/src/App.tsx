@@ -6,8 +6,8 @@ import {
   Capacitor,
   Arsenal,
   Weapon,
-} from "colyseus-test-core";
-import { Meter, Root } from "colyseus-test-ui";
+} from "@warbird/core";
+import { Meter, Root } from "@warbird/ui";
 import { Room } from "colyseus.js";
 import React, { useEffect, useReducer } from "react";
 

@@ -1,4 +1,4 @@
-import { Body, Bullet, Entity } from "colyseus-test-core";
+import { Body, Bullet, Entity } from "@warbird/core";
 import { CircleGeometry, Mesh, MeshStandardMaterial } from "three";
 import { interpolateEntity } from "../helpers/interpolateEntity";
 import { RenderObject } from "../types";

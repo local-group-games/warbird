@@ -1,4 +1,4 @@
-import { Ship, Body, Entity } from "colyseus-test-core";
+import { Ship, Body, Entity } from "@warbird/core";
 import { Matrix4 } from "three";
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { interpolateEntity } from "../helpers/interpolateEntity";

@@ -1,4 +1,4 @@
-import { PureSystem } from "colyseus-test-ecs";
+import { PureSystem } from "@warbird/ecs";
 import { Capacitor } from "../components";
 
 export const CapacitorSystem: PureSystem = world => {

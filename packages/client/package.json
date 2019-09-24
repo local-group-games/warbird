@@ -1,5 +1,5 @@
 {
-  "name": "colyseus-test-client",
+  "name": "@warbird/client",
   "version": "0.10.0",
   "main": "index.js",
   "license": "MIT",
@@ -11,9 +11,9 @@
   "dependencies": {
     "@types/react": "^16.9.2",
     "@types/react-dom": "^16.9.0",
-    "colyseus-test-core": "0.10.0",
-    "colyseus-test-ui": "0.10.0",
-    "colyseus-test-utils": "0.10.0",
+    "@warbird/core": "0.10.0",
+    "@warbird/ui": "0.10.0",
+    "@warbird/utils": "0.10.0",
     "colyseus.js": "^0.11.0",
     "react": "^16.9.0",
     "react-app-rewired": "^2.1.3",

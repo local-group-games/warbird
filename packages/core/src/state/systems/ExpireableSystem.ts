@@ -1,4 +1,4 @@
-import { PureSystem } from "colyseus-test-ecs";
+import { PureSystem } from "@warbird/ecs";
 import { Expireable } from "../components";
 
 export const ExpireableSystem: PureSystem = world => {

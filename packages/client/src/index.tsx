@@ -11,9 +11,9 @@ import {
   placeTile,
   Player,
   RoomState,
-} from "colyseus-test-core";
-import { loadFont } from "colyseus-test-ui";
-import { waitMs } from "colyseus-test-utils";
+} from "@warbird/core";
+import { loadFont } from "@warbird/ui";
+import { waitMs } from "@warbird/utils";
 import { Client, Room } from "colyseus.js";
 import React from "react";
 import ReactDOM from "react-dom";

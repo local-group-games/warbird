@@ -1,5 +1,5 @@
 import { MapSchema, Schema, type } from "@colyseus/schema";
-import { Entity } from "colyseus-test-ecs";
+import { Entity } from "@warbird/ecs";
 import { Player } from "./Player";
 
 export class RoomState extends Schema {

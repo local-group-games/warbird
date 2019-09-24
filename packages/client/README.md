@@ -1,1 +1,1 @@
-# colyseus-test-client
+# @warbird/client

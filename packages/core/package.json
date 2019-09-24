@@ -1,5 +1,5 @@
 {
-  "name": "colyseus-test-core",
+  "name": "@warbird/core",
   "version": "0.10.0",
   "main": "dist/index.js",
   "types": "src/index.ts",
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@colyseus/schema": "^0.4.0",
-    "colyseus-test-ecs": "0.10.0",
+    "@warbird/ecs": "0.10.0",
     "nanoid": "^2.0.4",
     "p2": "^0.7.1",
     "ts-mixer": "^4.0.0"

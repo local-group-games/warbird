@@ -1,5 +1,5 @@
 {
-  "name": "colyseus-test-ecs",
+  "name": "@warbird/ecs",
   "version": "0.10.0",
   "main": "dist/index.js",
   "types": "src/index.ts",

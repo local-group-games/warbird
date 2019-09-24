@@ -1,4 +1,4 @@
-import { Component } from "colyseus-test-ecs";
+import { Component } from "@warbird/ecs";
 import { ComponentType } from "../ComponentType";
 
 export class Vehicle extends Component {

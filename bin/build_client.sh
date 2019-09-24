@@ -1,5 +1,5 @@
 #!/bin/bash
 
 lerna run build \
-  --scope=colyseus-test-client \
+  --scope=@warbird/client \
   --include-filtered-dependencies

@@ -1,4 +1,4 @@
-import { createRngUtils, random } from "colyseus-test-utils";
+import { createRngUtils, random } from "@warbird/utils";
 import { Texture } from "three";
 
 const { jitter, range } = createRngUtils();
