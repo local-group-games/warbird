@@ -5,10 +5,12 @@ import {
   Destructible,
   Entity,
   RoomState,
+  Ship,
 } from "@warbird/core";
 import { Root } from "@warbird/ui";
 import { Room } from "colyseus.js";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useComponent } from "./ui/hooks/useComponent";
 import { useForceUpdate } from "./ui/hooks/useForceUpdate";
 import { Items } from "./ui/Items";
 import { Meters } from "./ui/Meters";
@@ -40,34 +42,27 @@ const Footer = styled.div`
   pointer-events: none;
 `;
 
-function usePlayerShip(room: Room<RoomState>): Entity | null {
-  const player = room.state.players[room.sessionId];
-
-  if (!player) return null;
-
-  const ship = room.state.entities[player.shipId];
-
-  return ship || null;
-}
-
 export function App(props: AppProps) {
   const forceUpdate = useForceUpdate();
-  const ship = usePlayerShip(props.room);
+  const [playerShip, setPlayerShip] = useState<Ship>();
+
   useEffect(() => {
-    const onStateChange = () => forceUpdate();
+    const onStateChange = () => {
+      const player = props.room.state.players[props.room.sessionId];
+
+      if (!player) return;
+
+      const ship = props.room.state.entities[player.shipId];
+
+      if (ship && ship !== playerShip) {
+        setPlayerShip(ship);
+      }
+    };
 
     props.room.onStateChange(onStateChange);
 
     return () => props.room.onStateChange.remove(onStateChange);
-  }, [props.room, forceUpdate]);
-
-  if (!ship) {
-    return null;
-  }
-
-  const { health } = Entity.getComponent(ship, Destructible);
-  const { weapons, activeWeapon } = Entity.getComponent(ship, Arsenal);
-  const { energy } = Entity.getComponent(ship, Capacitor);
+  }, [props.room, forceUpdate, playerShip]);
 
   return (
     <Root>
@@ -75,9 +70,28 @@ export function App(props: AppProps) {
       <Main />
       <Footer>
         <Version>{`${process.env.REACT_APP_NAME} v${process.env.REACT_APP_VERSION}`}</Version>
-        <Meters health={health} energy={energy} />
-        <Items weapons={weapons} activeWeapon={activeWeapon} />
+        {playerShip && <PlayerInfo ship={playerShip} />}
       </Footer>
     </Root>
   );
 }
+
+export type PlayerInfoProps = {
+  ship: Entity;
+};
+
+const PlayerInfo = (props: PlayerInfoProps) => {
+  const [{ health }, { weapons, activeWeapon }, { energy }] = useComponent(
+    props.ship,
+    Destructible,
+    Arsenal,
+    Capacitor,
+  );
+
+  return (
+    <>
+      <Meters health={health} energy={energy} />
+      <Items weapons={weapons} activeWeapon={activeWeapon} />
+    </>
+  );
+};

@@ -52,17 +52,6 @@ export async function createScene(canvas: HTMLCanvasElement) {
 
     previousTime = time;
 
-    if (cameraTarget) {
-      const object = objectsByEntity.get(cameraTarget);
-
-      if (object) {
-        skyCamera.position.x = object.object.position.x * 0.05;
-        skyCamera.position.y = object.object.position.y * 0.05;
-        camera.position.x = object.object.position.x;
-        camera.position.y = object.object.position.y;
-      }
-    }
-
     for (let i = 0; i < objects.length; i++) {
       objects[i].update(deltaTime);
     }
@@ -75,6 +64,17 @@ export async function createScene(canvas: HTMLCanvasElement) {
       if (now - animation.start >= animation.duration) {
         animations.splice(animations.indexOf(animation), 1);
         scene.remove(animation.object);
+      }
+    }
+
+    if (cameraTarget) {
+      const object = objectsByEntity.get(cameraTarget);
+
+      if (object) {
+        skyCamera.position.x = object.object.position.x * 0.05;
+        skyCamera.position.y = object.object.position.y * 0.05;
+        camera.position.x = object.object.position.x;
+        camera.position.y = object.object.position.y;
       }
     }
 

@@ -1,3 +1,4 @@
+import { DataChange } from "@colyseus/schema";
 import {
   Body,
   changeWeapon,
@@ -5,22 +6,20 @@ import {
   Entity,
   EntityType,
   placeTile,
-  RoomState,
   Player,
-  Ship,
+  RoomState,
 } from "@warbird/core";
 import { loadFont } from "@warbird/ui";
 import { waitMs } from "@warbird/utils";
 import { Client, Room } from "colyseus.js";
 import React from "react";
 import ReactDOM from "react-dom";
-import { createExplosion } from "./render/animations/explosion";
 import { App } from "./App";
-import { getMousePosition } from "./render/helpers/getMousePosition";
 import { createInputListener } from "./input";
+import { createExplosion } from "./render/animations/explosion";
 import { createScene } from "./render/createScene";
-import * as Session from "./session";
-import { DataChange } from "@colyseus/schema";
+import { getMousePosition } from "./render/helpers/getMousePosition";
+import { cacheSession, clearSession, getSession } from "./session";
 
 const input = createInputListener({
   KeyW: "thrustForward",
@@ -46,7 +45,7 @@ async function connect<S>(
   let room: Room<S> | undefined;
 
   while (!room) {
-    const session = Session.getSession();
+    const session = getSession();
 
     try {
       if (session) {
@@ -55,12 +54,12 @@ async function connect<S>(
         room = await client.joinOrCreate(roomName);
       }
     } catch (e) {
-      Session.clearSession();
+      clearSession();
       await waitMs(pollInterval);
     }
   }
 
-  Session.cacheSession(room);
+  cacheSession(room);
 
   return room as Room<S>;
 }
