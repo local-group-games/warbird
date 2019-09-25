@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.14.0](https://github.com/local-group-games/warbird/compare/v0.13.0...v0.14.0) (2019-09-25)
+
+
+### Features
+
+* split rendering code out from index client file ([a5e632f](https://github.com/local-group-games/warbird/commit/a5e632f))
+
+
+
+
+
 # [0.13.0](https://github.com/local-group-games/warbird/compare/v0.12.0...v0.13.0) (2019-09-25)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@warbird/client",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
@@ -14,9 +14,9 @@
     "@gamestdio/mathf": "^1.0.1",
     "@types/react": "^16.9.2",
     "@types/react-dom": "^16.9.0",
-    "@warbird/core": "0.13.0",
-    "@warbird/ui": "0.13.0",
-    "@warbird/utils": "0.13.0",
+    "@warbird/core": "0.14.0",
+    "@warbird/ui": "0.14.0",
+    "@warbird/utils": "0.14.0",
     "colyseus.js": "^0.11.0",
     "react": "^16.9.0",
     "react-app-rewired": "^2.1.3",
