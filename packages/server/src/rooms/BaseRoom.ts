@@ -1,37 +1,38 @@
-import { Client, Room } from "colyseus";
 import {
   Arsenal,
   Body,
-  CapacitorSystem,
   Destructible,
-  DestructibleSystem,
   Expireable,
-  ExpireableSystem,
   GameMessage,
   GameMessageType,
-  PhysicsSystem,
-  PickupSystem,
+  Inventory,
   Player,
-  ProjectileCollisionSystem,
   RoomState,
   Ship,
   Tile,
-  VehicleSystem,
   Weapon,
   World,
-  Inventory,
 } from "@warbird/core";
+import { Client, Room } from "colyseus";
+import {
+  CapacitorSystem,
+  DestructibleSystem,
+  ExpireableSystem,
+  PhysicsSystem,
+  PickupSystem,
+  ProjectileCollisionSystem,
+  VehicleSystem,
+} from "../systems";
+
+export type WarbirdWorld = World<{
+  vehicle: VehicleSystem;
+  physics: PhysicsSystem;
+}>;
 
 export abstract class BaseRoom extends Room<RoomState> {
-  private _world: World<{
-    vehicle: VehicleSystem;
-    physics: PhysicsSystem;
-  }> | null = null;
+  private _world: WarbirdWorld | null = null;
 
-  protected get world(): World<{
-    vehicle: VehicleSystem;
-    physics: PhysicsSystem;
-  }> {
+  protected get world(): WarbirdWorld {
     if (!this._world) {
       throw new Error(`World accessed before onCreate() was called.`);
     }

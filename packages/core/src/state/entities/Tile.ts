@@ -3,7 +3,7 @@ import { CollisionGroup } from "../CollisionGroup";
 import { Destructible } from "../components";
 import { Body } from "../components/Body";
 import { Expireable } from "../components/Expireable";
-import { createIsEntity, EntityType } from "../EntityType";
+import { EntityType } from "../EntityType";
 
 export class Tile extends Entity {
   type = EntityType.Tile;
@@ -24,5 +24,3 @@ export class Tile extends Entity {
     this.addComponent(body, expireable, destructible);
   }
 }
-
-export const isTile = createIsEntity<Tile>(EntityType.Tile);

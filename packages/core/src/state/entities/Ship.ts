@@ -4,7 +4,7 @@ import { Destructible, Inventory, Vehicle } from "../components";
 import { Arsenal } from "../components/Arsenal";
 import { Body } from "../components/Body";
 import { Capacitor } from "../components/Capacitor";
-import { createIsEntity, EntityType } from "../EntityType";
+import { EntityType } from "../EntityType";
 
 export class Ship extends Entity {
   type = EntityType.Ship;
@@ -42,5 +42,3 @@ export class Ship extends Entity {
     );
   }
 }
-
-export const isShip = createIsEntity<Ship>(EntityType.Ship);

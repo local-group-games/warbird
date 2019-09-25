@@ -1,97 +1,83 @@
-import { DataChange } from "@colyseus/schema";
+import styled from "@emotion/styled";
 import {
   Arsenal,
-  ArsenalProps,
   Capacitor,
-  CapacitorProps,
   Destructible,
-  DestructibleProps,
   Entity,
-  Player,
   RoomState,
-  Ship,
 } from "@warbird/core";
 import { Root } from "@warbird/ui";
 import { Room } from "colyseus.js";
-import { css } from "emotion";
-import React, { useEffect, useReducer, useRef } from "react";
+import React, { useEffect } from "react";
+import { useForceUpdate } from "./ui/hooks/useForceUpdate";
 import { Items } from "./ui/Items";
 import { Meters } from "./ui/Meters";
 
-const SHIP_CHANGE_COMPONENT_TYPES = [Arsenal, Capacitor, Destructible];
-
-type AppProps = {
+export type AppProps = {
   room: Room<RoomState>;
 };
 
-type PlayerInfo = {
-  capacitor: CapacitorProps;
-  destructible: DestructibleProps;
-  arsenal: ArsenalProps;
-};
+const Version = styled.div`
+  flex: 1;
+  text-align: center;
+`;
 
-type AppState = {
-  players: PlayerInfo[];
-};
+const Header = styled.div`
+  display: flex;
+  flex: 1;
+  pointer-events: none;
+`;
+const Main = styled.div`
+  display: flex;
+  flex: 8;
+  pointer-events: none;
+`;
+const Footer = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  pointer-events: none;
+`;
 
-export function App(props: AppProps) {
-  const { current: state } = useRef<any>({ entities: {}, players: [] });
-  const [, forceUpdate] = useReducer((x, _: void) => x + 1, 0);
-
-  useEffect(() => {
-    props.room.onStateChange(s => {
-      Object.assign(state, s);
-      forceUpdate();
-    });
-  }, [props.room]);
-
-  const player = state.players[props.room.sessionId];
+function usePlayerShip(room: Room<RoomState>): Entity | null {
+  const player = room.state.players[room.sessionId];
 
   if (!player) return null;
 
-  const ship = state.entities[player.shipId];
+  const ship = room.state.entities[player.shipId];
 
-  if (!ship) return null;
+  return ship || null;
+}
 
-  const destructible = Entity.getComponent(ship, Destructible);
-  const arsenal = Entity.getComponent(ship, Arsenal);
-  const capacitor = Entity.getComponent(ship, Capacitor);
-  const version = (
-    <div
-      className={css`
-        flex: 1;
-        text-align: center;
-      `}
-    >{`${process.env.REACT_APP_NAME} v${process.env.REACT_APP_VERSION}`}</div>
-  );
+export function App(props: AppProps) {
+  const forceUpdate = useForceUpdate();
+  const ship = usePlayerShip(props.room);
+  useEffect(() => {
+    const onStateChange = () => forceUpdate();
+
+    props.room.onStateChange(onStateChange);
+
+    return () => props.room.onStateChange.remove(onStateChange);
+  }, [props.room, forceUpdate]);
+
+  if (!ship) {
+    return null;
+  }
+
+  const { health } = Entity.getComponent(ship, Destructible);
+  const { weapons, activeWeapon } = Entity.getComponent(ship, Arsenal);
+  const { energy } = Entity.getComponent(ship, Capacitor);
 
   return (
     <Root>
-      <div
-        className={css`
-          flex: 1;
-          pointer-events: none;
-        `}
-      ></div>
-      <div
-        className={css`
-          flex: 8;
-          pointer-events: none;
-        `}
-      ></div>
-      <div
-        className={css`
-          display: flex;
-          flex: 1;
-          flex-direction: row;
-          align-items: center;
-          pointer-events: none;
-        `}
-      >
-        {version}
-        <Meters health={destructible.health} energy={capacitor.energy} />
-        <Items activeWeapon={arsenal.activeWeapon} weapons={arsenal.weapons} />
-      </div>
+      <Header />
+      <Main />
+      <Footer>
+        <Version>{`${process.env.REACT_APP_NAME} v${process.env.REACT_APP_VERSION}`}</Version>
+        <Meters health={health} energy={energy} />
+        <Items weapons={weapons} activeWeapon={activeWeapon} />
+      </Footer>
     </Root>
   );
 }

@@ -2,7 +2,7 @@ import { Entity } from "@warbird/ecs";
 import { CollisionGroup } from "../CollisionGroup";
 import { Destructible, Inventory } from "../components";
 import { Body } from "../components/Body";
-import { createIsEntity, EntityType } from "../EntityType";
+import { EntityType } from "../EntityType";
 
 export class Ball extends Entity {
   type = EntityType.Ball;
@@ -32,5 +32,3 @@ export class Ball extends Entity {
     this.addComponent(body, destructible, inventory);
   }
 }
-
-export const isBall = createIsEntity<Ball>(EntityType.Ball);

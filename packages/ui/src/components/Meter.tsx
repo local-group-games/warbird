@@ -1,38 +1,33 @@
+import styled from "@emotion/styled";
 import React from "react";
-import { css, cx } from "emotion";
+import { animated, useSpring } from "react-spring";
 
-type WrapperProps = {
+type MeterWrapperProps = {
   height: number;
   className?: string;
 };
 
-type BarProps = {
+export type MeterProps = MeterWrapperProps & {
   color: string;
   progress: number;
 };
 
-export type MeterProps = WrapperProps & BarProps;
+const MeterWrapper = styled.div<MeterWrapperProps>`
+  display: flex;
+  height: ${props => props.height}px;
+`;
 
 export function Meter(props: MeterProps) {
   const { color, height, progress, className } = props;
+  const x = useSpring({
+    width: `${progress * 100}%`,
+    backgroundColor: color,
+    height: "100%",
+  });
 
   return (
-    <div
-      className={cx(
-        className,
-        css`
-          display: flex;
-          height: ${props.height}px;
-        `,
-      )}
-    >
-      <div
-        className={css`
-          width: ${props.progress * 100}%;
-          height: 100%;
-          background-color: ${props.color};
-        `}
-      />
-    </div>
+    <MeterWrapper height={height} className={className}>
+      <animated.div style={x} />
+    </MeterWrapper>
   );
 }

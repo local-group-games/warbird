@@ -9,13 +9,15 @@
     "build:env-config": "bash ./bin/build_env_config.sh && mv ./env-config.js ./public"
   },
   "dependencies": {
+    "@emotion/core": "^10.0.17",
+    "@emotion/styled": "^10.0.17",
+    "@gamestdio/mathf": "^1.0.1",
     "@types/react": "^16.9.2",
     "@types/react-dom": "^16.9.0",
     "@warbird/core": "0.12.0",
     "@warbird/ui": "0.12.0",
     "@warbird/utils": "0.12.0",
     "colyseus.js": "^0.11.0",
-    "emotion": "^10.0.17",
     "react": "^16.9.0",
     "react-app-rewired": "^2.1.3",
     "react-dom": "^16.9.0",

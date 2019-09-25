@@ -1,7 +1,12 @@
+import {
+  Arsenal,
+  Body,
+  Bullet,
+  Capacitor,
+  Expireable,
+  PlayerInputs,
+} from "@warbird/core";
 import { Entity, System } from "@warbird/ecs";
-import { PlayerInputs } from "../../protocol/input";
-import { Arsenal, Body, Capacitor, Expireable } from "../components";
-import { Bullet } from "../entities";
 import { PhysicsSystem } from "./PhysicsSystem";
 
 const VEHICLE_BASE_TURN = 0.05;

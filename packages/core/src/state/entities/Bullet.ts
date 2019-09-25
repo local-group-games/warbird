@@ -3,7 +3,7 @@ import { CollisionGroup } from "../CollisionGroup";
 import { Body } from "../components/Body";
 import { Expireable } from "../components/Expireable";
 import { Projectile } from "../components/Projectile";
-import { createIsEntity, EntityType } from "../EntityType";
+import { EntityType } from "../EntityType";
 
 export class Bullet extends Entity {
   type = EntityType.Bullet;
@@ -27,5 +27,3 @@ export class Bullet extends Entity {
     this.addComponent(projectile, expireable, body);
   }
 }
-
-export const isProjectile = createIsEntity<Bullet>(EntityType.Bullet);

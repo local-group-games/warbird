@@ -1,5 +1,5 @@
+import { Capacitor } from "@warbird/core";
 import { PureSystem } from "@warbird/ecs";
-import { Capacitor } from "../components";
 
 export const CapacitorSystem: PureSystem = world => {
   const entities = world.getEntitiesByComponent(Capacitor);

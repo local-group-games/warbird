@@ -1,5 +1,5 @@
+import { Expireable } from "@warbird/core";
 import { PureSystem } from "@warbird/ecs";
-import { Expireable } from "../components";
 
 export const ExpireableSystem: PureSystem = world => {
   const entities = world.getEntitiesByComponent(Expireable);

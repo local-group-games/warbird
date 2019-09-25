@@ -1,21 +1,13 @@
-import React, { Props, PropsWithChildren, ReactNode } from "react";
-import { css } from "emotion";
+import styled from "@emotion/styled";
 
-export function Root(props: { children: ReactNode }) {
-  return (
-    <div
-      className={css`
-        width: 100%;
-        height: 100%;
-        position: fixed;
-        pointer-events: none;
-        color: #ffffff;
-        font-size: 12px;
-        font-family: "PragmataPro Mono", monospace;
-        display: flex;
-        flex-direction: column;
-      `}
-      {...props}
-    />
-  );
-}
+export const Root = styled.div`
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  pointer-events: none;
+  color: #ffffff;
+  font-size: 12px;
+  font-family: "PragmataPro Mono", monospace;
+  display: flex;
+  flex-direction: column;
+`;

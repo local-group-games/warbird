@@ -1,5 +1,4 @@
 import { createRngUtils, random } from "@warbird/utils";
-import { Texture } from "three";
 
 const { jitter, range } = createRngUtils();
 const maxValues = [255, 255, 255];
@@ -112,11 +111,7 @@ export function createStarFieldTexture(count: number) {
     FIELD_SIZE,
   );
 
-  const texture = new Texture(canvas);
-
-  texture.needsUpdate = true;
-
-  return texture;
+  return canvas;
 }
 
 export function createDustFieldTexture(count: number) {
@@ -127,9 +122,5 @@ export function createDustFieldTexture(count: number) {
     FIELD_SIZE,
   );
 
-  const texture = new Texture(canvas);
-
-  texture.needsUpdate = true;
-
-  return texture;
+  return canvas;
 }

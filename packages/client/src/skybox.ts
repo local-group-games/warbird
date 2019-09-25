@@ -1,18 +1,27 @@
-import { Scene, BoxGeometry, MeshBasicMaterial, BackSide, Mesh } from "three";
 import { createStarFieldTexture } from "./textures/stars";
 
-export const createSkyBox = () => {
+export async function createSkyBox() {
+  const {
+    Scene,
+    BoxGeometry,
+    MeshBasicMaterial,
+    BackSide,
+    Mesh,
+    Texture,
+  } = await import("three");
   const scene = new Scene();
   const outerBox = new BoxGeometry(160, 160, 160);
   const innerBox = new BoxGeometry(60, 60, 60);
+  const outerTexture = new Texture(createStarFieldTexture(600));
+  const innerTexture = new Texture(createStarFieldTexture(1000));
   const outerMaterial = new MeshBasicMaterial({
-    map: createStarFieldTexture(600),
+    map: outerTexture,
     side: BackSide,
     transparent: true,
     depthWrite: false,
   });
   const innerMaterial = new MeshBasicMaterial({
-    map: createStarFieldTexture(1000),
+    map: innerTexture,
     side: BackSide,
     transparent: true,
     depthWrite: false,
@@ -23,5 +32,8 @@ export const createSkyBox = () => {
   scene.add(outer);
   scene.add(inner);
 
+  outerTexture.needsUpdate = true;
+  innerTexture.needsUpdate = true;
+
   return scene;
-};
+}

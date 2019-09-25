@@ -1,6 +1,5 @@
+import { Body, Destructible, Projectile } from "@warbird/core";
 import { PureSystem } from "@warbird/ecs";
-import { Body, Destructible } from "../components";
-import { Projectile } from "../components/Projectile";
 
 export const ProjectileCollisionSystem: PureSystem = world => {
   const projectiles = world.getEntitiesByComponent(Projectile);

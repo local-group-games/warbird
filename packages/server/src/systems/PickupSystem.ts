@@ -1,6 +1,5 @@
+import { Body, Inventory, Pickup, Vehicle } from "@warbird/core";
 import { PureSystem } from "@warbird/ecs";
-import { Body, Inventory, Vehicle } from "../components";
-import { Pickup } from "../components/Pickup";
 
 export const PickupSystem: PureSystem = world => {
   for (const pickupEntity of world.getEntitiesByComponent(Pickup)) {

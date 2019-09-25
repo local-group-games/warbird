@@ -3,11 +3,7 @@ import {
   changeWeapon,
   command,
   Entity,
-  isBall,
-  isProjectile,
-  isShip,
-  isTile,
-  isWreck,
+  EntityType,
   placeTile,
   Player,
   RoomState,
@@ -17,14 +13,6 @@ import { waitMs } from "@warbird/utils";
 import { Client, Room } from "colyseus.js";
 import React from "react";
 import ReactDOM from "react-dom";
-import {
-  AmbientLight,
-  DirectionalLight,
-  PCFSoftShadowMap,
-  PerspectiveCamera,
-  Scene,
-  WebGLRenderer,
-} from "three";
 import { createExplosion } from "./animations/explosion";
 import { App } from "./App";
 import { getMousePosition } from "./helpers/getMousePosition";
@@ -99,9 +87,28 @@ async function connect<S>(
   return room as Room<S>;
 }
 
+const objectFactoryByEntityType: {
+  [key: number]: (entity: Entity) => RenderObject | Promise<RenderObject>;
+} = {
+  [EntityType.Ball]: createBall,
+  [EntityType.Bullet]: createProjectile,
+  [EntityType.Ship]: createShip,
+  [EntityType.Tile]: createTile,
+  [EntityType.Wreck]: createWreck,
+};
+
 async function main() {
   const ui = document.getElementById("ui") as HTMLElement;
   const canvas = document.getElementById("game") as HTMLCanvasElement;
+  const {
+    AmbientLight,
+    DirectionalLight,
+    PCFSoftShadowMap,
+    PerspectiveCamera,
+    Scene,
+    WebGLRenderer,
+    Vector3,
+  } = await import("three");
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   const ambientLight = new AmbientLight(0xffffff, 0.2);
   const directionalLight = new DirectionalLight(0xffffff, 0.5);
@@ -115,7 +122,7 @@ async function main() {
     )}`,
   );
   const animations = new Set<Animation>();
-  const sky = createSkyBox();
+  const sky = await createSkyBox();
 
   renderer.setClearAlpha(0);
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -192,16 +199,10 @@ async function main() {
     let object = objectsByEntity.get(entity);
 
     if (!object) {
-      if (isShip(entity)) {
-        object = await createShip(entity);
-      } else if (isTile(entity)) {
-        object = createTile(entity);
-      } else if (isBall(entity)) {
-        object = createBall(entity);
-      } else if (isProjectile(entity)) {
-        object = createProjectile(entity);
-      } else if (isWreck(entity)) {
-        object = createWreck(entity);
+      const createObject = objectFactoryByEntityType[entity.type];
+
+      if (createObject) {
+        object = await createObject(entity);
       } else {
         throw new Error(`Entity ${(entity as Entity).type} not supported.`);
       }
@@ -218,7 +219,7 @@ async function main() {
       registerObject(entity);
     }
   };
-  const onRemove = (entity: Entity) => {
+  const onRemove = async (entity: Entity) => {
     if (Entity.hasComponent(entity, Body)) {
       const object = objectsByEntity.get(entity);
 
@@ -229,9 +230,9 @@ async function main() {
       objectsByEntity.delete(entity);
     }
 
-    if (isShip(entity)) {
+    if (entity.type === EntityType.Ship) {
       const shipBody = Entity.getComponent(entity, Body);
-      const explosion = createExplosion(
+      const explosion = await createExplosion(
         shipBody.x,
         shipBody.y,
         explosionDuration,
@@ -242,7 +243,9 @@ async function main() {
     }
   };
 
-  Object.values(room.state.entities).forEach(onAdd);
+  for (const entityId in room.state.entities) {
+    onAdd(room.state.entities[entityId]);
+  }
 
   room.state.entities.onAdd = onAdd;
   room.state.entities.onRemove = onRemove;
@@ -250,7 +253,9 @@ async function main() {
   input.subscribe((key, value) => room.send(command(key, value)));
 
   window.addEventListener("mousedown", e => {
-    const { x, y } = getMousePosition(e, camera);
+    const vec = new Vector3();
+    const pos = new Vector3();
+    const { x, y } = getMousePosition(e, camera, vec, pos);
 
     room.send(placeTile(x, y));
   });

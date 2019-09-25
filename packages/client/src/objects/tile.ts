@@ -1,8 +1,10 @@
-import { Tile, Body, Entity, Destructible } from "@warbird/core";
-import { BoxGeometry, Material, Math, Mesh, MeshStandardMaterial } from "three";
+import { Body, Destructible, Entity, Tile } from "@warbird/core";
 import { RenderObject } from "../types";
 
-export function createTile(tile: Tile): RenderObject {
+export async function createTile(tile: Tile): Promise<RenderObject> {
+  const { BoxGeometry, Math, Mesh, MeshStandardMaterial } = await import(
+    "three"
+  );
   const body = Entity.getComponent(tile, Body);
   const destructible = Entity.getComponent(tile, Destructible);
   const geometry = new BoxGeometry(body.width, body.height, 1);
@@ -22,12 +24,15 @@ export function createTile(tile: Tile): RenderObject {
   return {
     object: mesh,
     update: () => {
-      const material = mesh.material as Material;
-      material.opacity = Math.lerp(
-        material.opacity,
-        destructible.health / 100,
-        0.5,
-      );
+      const material = mesh.material;
+
+      if (!Array.isArray(material)) {
+        material.opacity = Math.lerp(
+          material.opacity,
+          destructible.health / 100,
+          0.5,
+        );
+      }
     },
   };
 }

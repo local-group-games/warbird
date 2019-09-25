@@ -4,7 +4,7 @@ import { Destructible } from "../components";
 import { Body } from "../components/Body";
 import { Expireable } from "../components/Expireable";
 import { Pickup } from "../components/Pickup";
-import { createIsEntity, EntityType } from "../EntityType";
+import { EntityType } from "../EntityType";
 
 export class Wreck extends Entity {
   type = EntityType.Wreck;
@@ -29,5 +29,3 @@ export class Wreck extends Entity {
     this.addComponent(body, expireable, destructible, pickup);
   }
 }
-
-export const isWreck = createIsEntity<Wreck>(EntityType.Wreck);

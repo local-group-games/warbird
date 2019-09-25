@@ -1,6 +1,6 @@
-import { ChangeMap, Entity, System } from "@warbird/ecs";
+import { Body } from "@warbird/core";
+import { Entity, System } from "@warbird/ecs";
 import { AABB, Body as P2Body, Box, World as P2World } from "p2";
-import { Body } from "../components";
 
 export type CollisionHandler = (a: Body, b: Body) => void;
 

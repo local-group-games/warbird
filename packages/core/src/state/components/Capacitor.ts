@@ -2,12 +2,7 @@ import { type } from "@colyseus/schema";
 import { Component } from "@warbird/ecs";
 import { ComponentType } from "../ComponentType";
 
-export interface CapacitorProps {
-  energy: number;
-  energyPerS: number;
-}
-
-export class Capacitor extends Component implements CapacitorProps {
+export class Capacitor extends Component {
   getType() {
     return ComponentType.Capacitor;
   }

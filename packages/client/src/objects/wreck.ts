@@ -1,10 +1,12 @@
-import { Wreck, Entity, Body } from "@warbird/core";
-import { Mesh, MeshStandardMaterial, OctahedronGeometry } from "three";
+import { Body, Entity, Wreck } from "@warbird/core";
 import { RenderObject } from "../types";
 
 const ROTATION_PER_MS = 0.0005;
 
-export function createWreck(wreck: Wreck): RenderObject {
+export async function createWreck(wreck: Wreck): Promise<RenderObject> {
+  const { Mesh, MeshStandardMaterial, OctahedronGeometry } = await import(
+    "three"
+  );
   const body = Entity.getComponent(wreck, Body);
   const geometry = new OctahedronGeometry(body.width / 2, 0);
   const material = new MeshStandardMaterial({

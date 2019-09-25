@@ -1,27 +1,15 @@
-import React from "react";
-import { css, cx } from "emotion";
+import styled from "@emotion/styled";
 
 export type ItemButtonProps = {
-  children?: React.ReactNode;
-  className?: string;
+  backgroundColor: string;
 };
 
-export function ItemButton(props: ItemButtonProps) {
-  return (
-    <div
-      className={cx(
-        props.className,
-        css`
-          border-radius: 50%;
-          width: 30px;
-          height: 30px;
-          padding: 8px;
-          line-height: 30px;
-          text-align: center;
-        `,
-      )}
-    >
-      {props.children}
-    </div>
-  );
-}
+export const ItemButton = styled.div<ItemButtonProps>`
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  padding: 8px;
+  line-height: 30px;
+  text-align: center;
+  background-color: ${props => props.backgroundColor || "#ffffff"};
+`;
