@@ -4,7 +4,6 @@ import { createSkyBox } from "./skybox";
 import { Animation, RenderObject } from "../types";
 
 export async function createScene(canvas: HTMLCanvasElement) {
-  const animations = new Set<Animation>();
   const {
     AmbientLight,
     DirectionalLight,
@@ -14,6 +13,8 @@ export async function createScene(canvas: HTMLCanvasElement) {
     WebGLRenderer,
   } = await import("three");
   const sky = await createSkyBox();
+  const animations: Animation[] = [];
+  const objects: RenderObject[] = [];
   const objectsByEntity = new Map<Entity, RenderObject>();
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   const ambientLight = new AmbientLight(0xffffff, 0.2);
@@ -51,8 +52,6 @@ export async function createScene(canvas: HTMLCanvasElement) {
 
     previousTime = time;
 
-    objectsByEntity.forEach(object => object.update(deltaTime));
-
     if (cameraTarget) {
       const object = objectsByEntity.get(cameraTarget);
 
@@ -64,14 +63,20 @@ export async function createScene(canvas: HTMLCanvasElement) {
       }
     }
 
-    animations.forEach(animation => {
+    for (let i = 0; i < objects.length; i++) {
+      objects[i].update(deltaTime);
+    }
+
+    for (let i = 0; i < animations.length; i++) {
+      const animation = animations[i];
+
       animation.update(deltaTime);
 
       if (now - animation.start >= animation.duration) {
-        animations.delete(animation);
+        animations.splice(animations.indexOf(animation), 1);
         scene.remove(animation.object);
       }
-    });
+    }
 
     renderer.autoClear = true;
     renderer.render(scene, camera);
@@ -92,6 +97,7 @@ export async function createScene(canvas: HTMLCanvasElement) {
       }
 
       scene.add(object.object);
+      objects.push(object);
       objectsByEntity.set(entity, object);
     }
 
@@ -101,15 +107,20 @@ export async function createScene(canvas: HTMLCanvasElement) {
   function removeObject(entity: Entity) {
     const object = objectsByEntity.get(entity);
 
-    if (object) {
-      scene.remove(object.object);
+    if (!object) {
+      console.warn(
+        `Attempted to remove render object for entity ${entity.id}, but no object was found.`,
+      );
+      return;
     }
 
+    scene.remove(object.object);
+    objects.splice(objects.indexOf(object), 1);
     objectsByEntity.delete(entity);
   }
 
   function addAnimation(animation: Animation) {
-    animations.add(animation);
+    animations.push(animation);
     scene.add(animation.object);
   }
 
