@@ -1,5 +1,5 @@
 import { Body, Entity, Wreck } from "@warbird/core";
-import { RenderObject } from "../types";
+import { RenderObject } from "../../types";
 
 const ROTATION_PER_MS = 0.0005;
 

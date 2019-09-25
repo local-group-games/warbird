@@ -1,6 +1,6 @@
 import { Ball, Entity, Body } from "@warbird/core";
 import { interpolateEntity } from "../helpers/interpolateEntity";
-import { RenderObject } from "../types";
+import { RenderObject } from "../../types";
 
 export async function createBall(ball: Ball): Promise<RenderObject> {
   const { Mesh, MeshStandardMaterial, SphereGeometry } = await import("three");

@@ -23,6 +23,7 @@ export function Meter(props: MeterProps) {
     width: `${progress * 100}%`,
     backgroundColor: color,
     height: "100%",
+    border: "1px solid rgba(255, 255, 255, 0.4)",
   });
 
   return (

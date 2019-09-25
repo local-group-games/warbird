@@ -1,7 +1,7 @@
 import { Ship, Body, Entity } from "@warbird/core";
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { interpolateEntity } from "../helpers/interpolateEntity";
-import { RenderObject } from "../types";
+import { RenderObject } from "../../types";
 
 const loader = new GLTFLoader();
 

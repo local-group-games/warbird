@@ -10,10 +10,10 @@ export async function createSkyBox() {
     Texture,
   } = await import("three");
   const scene = new Scene();
-  const outerBox = new BoxGeometry(160, 160, 160);
-  const innerBox = new BoxGeometry(60, 60, 60);
-  const outerTexture = new Texture(createStarFieldTexture(600));
-  const innerTexture = new Texture(createStarFieldTexture(1000));
+  const outerBox = new BoxGeometry(250, 250, 250);
+  const innerBox = new BoxGeometry(100, 100, 100);
+  const outerTexture = new Texture(createStarFieldTexture(1000));
+  const innerTexture = new Texture(createStarFieldTexture(800));
   const outerMaterial = new MeshBasicMaterial({
     map: outerTexture,
     side: BackSide,

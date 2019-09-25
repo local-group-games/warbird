@@ -8,5 +8,5 @@ export function interpolateEntity(body: Body, object: Object3D) {
     lerp(object.position.y, body.y, 0.6),
     0,
   );
-  object.rotation.set(0, 0, lerpAngle(object.rotation.z, body.angle, 0.9));
+  object.rotation.set(0, 0, lerpAngle(object.rotation.z, body.angle, 0.8));
 }

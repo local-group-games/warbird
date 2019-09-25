@@ -1,5 +1,5 @@
 import { Body, Destructible, Entity, Tile } from "@warbird/core";
-import { RenderObject } from "../types";
+import { RenderObject } from "../../types";
 
 export async function createTile(tile: Tile): Promise<RenderObject> {
   const { BoxGeometry, Math, Mesh, MeshStandardMaterial } = await import(

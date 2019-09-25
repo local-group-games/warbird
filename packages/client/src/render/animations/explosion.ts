@@ -1,15 +1,14 @@
 import { Geometry } from "three";
-import { Animation } from "../types";
-
-const speed = 1;
-const count = 100;
-const size = 0.12;
-const color = 0xffffdd;
+import { Animation } from "../../types";
 
 export async function createExplosion(
   x: number,
   y: number,
-  duration: number,
+  duration = 500,
+  speed = 1,
+  count = 100,
+  size = 0.12,
+  color = 0xffffdd,
 ): Promise<Animation> {
   const { Geometry, Vector3, Points, PointsMaterial } = await import("three");
   const paths: any = [];
