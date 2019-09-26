@@ -16,7 +16,7 @@ const MetersWrapper = styled.div`
 
 function getHealthColor(value: number) {
   var hue = (value * 120).toString(10);
-  return ["hsl(", hue, ",100%,50%)"].join("");
+  return `hsl(${hue},100%,50%)`;
 }
 
 export const Meters = memo((props: MetersProps) => {
