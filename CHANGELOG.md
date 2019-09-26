@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.16.0](https://github.com/local-group-games/warbird/compare/v0.15.0...v0.16.0) (2019-09-26)
+
+
+### Features
+
+* add player key to ship; health color transition ([190bc7b](https://github.com/local-group-games/warbird/commit/190bc7b))
+
+
+
+
+
 # [0.15.0](https://github.com/local-group-games/warbird/compare/v0.14.0...v0.15.0) (2019-09-25)
 
 
