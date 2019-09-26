@@ -10,7 +10,7 @@ export class Player extends Schema {
   @type("boolean")
   connected: boolean = false;
   @type("string")
-  shipId: string | null = null;
+  vehicleId: string | null = null;
 
   input: PlayerInputs = {
     thrustForward: false,

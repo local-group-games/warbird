@@ -12,6 +12,7 @@ import {
   Tile,
   Weapon,
   World,
+  isShip,
 } from "@warbird/core";
 import { Client, Room } from "colyseus";
 import {
@@ -81,7 +82,8 @@ export abstract class BaseRoom extends Room<RoomState> {
     shipBody.x = (Math.random() - 0.5) * -5;
     shipBody.y = (Math.random() - 0.5) * -5;
 
-    player.shipId = ship.id;
+    player.vehicleId = ship.id;
+    ship.playerId = player.id;
 
     this.world.addEntity(ship);
   }
@@ -117,11 +119,11 @@ export abstract class BaseRoom extends Room<RoomState> {
       case GameMessageType.PlaceTile: {
         const [x, y] = message[1].map(Math.round);
 
-        if (!player.shipId) {
+        if (!player.vehicleId) {
           break;
         }
 
-        const ship: Ship = this.state.entities[player.shipId];
+        const ship: Ship = this.state.entities[player.vehicleId];
         const inventory = ship.getComponent(Inventory);
 
         if (inventory.scrap <= 0) {
@@ -161,11 +163,11 @@ export abstract class BaseRoom extends Room<RoomState> {
         const index = message[1];
         const player: Player = this.state.players[client.sessionId];
 
-        if (!player.shipId) {
+        if (!player.vehicleId) {
           break;
         }
 
-        const ship: Ship = this.state.entities[player.shipId];
+        const ship: Ship = this.state.entities[player.vehicleId];
         const arsenal = ship.getComponent(Arsenal);
         const weapon = arsenal.weapons[index];
 
@@ -192,8 +194,8 @@ export abstract class BaseRoom extends Room<RoomState> {
       const { sessionId } = client;
       const player: Player = this.state.players[sessionId];
 
-      if (player.shipId) {
-        const ship: Ship = this.state.entities[player.shipId];
+      if (player.vehicleId) {
+        const ship: Ship = this.state.entities[player.vehicleId];
 
         if (ship) {
           this.world.removeEntity(ship);
@@ -207,8 +209,13 @@ export abstract class BaseRoom extends Room<RoomState> {
   findPlayerByShip(ship: Ship): Player | null {
     for (const clientId in this.clients) {
       const client = this.clients[clientId];
-      const player = this.state.players[client.sessionId];
-      const playerShip = this.state.entities[player.shipId];
+      const player: Player = this.state.players[client.sessionId];
+
+      if (!player.vehicleId) {
+        continue;
+      }
+
+      const playerShip = this.state.entities[player.vehicleId];
 
       if (ship === playerShip) {
         return player;
@@ -222,15 +229,27 @@ export abstract class BaseRoom extends Room<RoomState> {
     for (const client of this.clients) {
       const player: Player = this.state.players[client.sessionId];
 
-      if (player.shipId) {
-        const ship: Ship | undefined = this.state.entities[player.shipId];
-
-        if (ship) {
-          this.world.systems.vehicle.applyInput(ship, player.input);
-        }
-      }
+      this.world.systems.vehicle.applyInput(player);
     }
 
     this.world.tick();
+
+    this.world.changes.removed.forEach(entity => {
+      if (!isShip(entity)) {
+        return;
+      }
+
+      const { playerId } = entity;
+
+      if (!playerId) {
+        return;
+      }
+
+      const player = this.state.players[playerId];
+
+      if (player) {
+        setTimeout(() => this.spawn(player), 5000);
+      }
+    });
   };
 }

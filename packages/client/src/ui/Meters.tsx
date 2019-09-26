@@ -14,22 +14,29 @@ const MetersWrapper = styled.div`
   flex-direction: column;
 `;
 
+function getHealthColor(value: number) {
+  var hue = (value * 120).toString(10);
+  return ["hsl(", hue, ",100%,50%)"].join("");
+}
+
 export const Meters = memo((props: MetersProps) => {
   const { energy, health } = props;
+  const percentHealth = health / 100;
+  const percentEnergy = energy / 100;
 
   return (
     <ClassNames>
       {({ css }) => (
         <MetersWrapper>
           <Meter
-            color="#88ff33"
+            color={getHealthColor(percentHealth)}
             height={5}
-            progress={health / 100}
+            progress={percentHealth}
             className={css`
               margin-bottom: 4px;
             `}
           />
-          <Meter color="#3388ff" height={5} progress={energy / 100} />
+          <Meter color="#3388ff" height={5} progress={percentEnergy} />
         </MetersWrapper>
       )}
     </ClassNames>

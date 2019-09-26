@@ -1,4 +1,4 @@
-import { Entity } from "@warbird/core";
+import { Entity, EntityType } from "@warbird/core";
 import { objectFactoryByEntityType } from "./objects/objectFactoryByEntityType";
 import { createSkyBox } from "./skybox";
 import { Animation, RenderObject } from "../types";
@@ -88,7 +88,7 @@ export async function createScene(canvas: HTMLCanvasElement) {
     let object = objectsByEntity.get(entity);
 
     if (!object) {
-      const createObject = objectFactoryByEntityType[entity.type];
+      const createObject = objectFactoryByEntityType[entity.type as EntityType];
 
       if (createObject) {
         object = await createObject(entity);

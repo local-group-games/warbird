@@ -5,6 +5,7 @@ import {
   Capacitor,
   Expireable,
   PlayerInputs,
+  Player,
 } from "@warbird/core";
 import { Entity, System } from "@warbird/ecs";
 import { PhysicsSystem } from "./PhysicsSystem";
@@ -27,25 +28,36 @@ export function getVehicleTurn(input: PlayerInputs) {
 }
 
 export class VehicleSystem extends System<{ physics: PhysicsSystem }> {
-  private inputsToApply: [Entity, PlayerInputs][] = [];
+  private inputsToApply: Player[] = [];
 
-  applyInput(entity: Entity, inputs: PlayerInputs) {
-    this.inputsToApply.push([entity, inputs]);
+  applyInput(player: Player) {
+    this.inputsToApply.push(player);
   }
 
   execute() {
     const deltaTimeS = this.world.clock.deltaTime / 1000;
 
-    let pair: [Entity, PlayerInputs] | undefined;
+    let player: Player | undefined;
 
-    while ((pair = this.inputsToApply.pop())) {
-      const [vehicle, inputs] = pair;
+    while ((player = this.inputsToApply.pop())) {
+      const { vehicleId, input } = player;
+
+      if (!vehicleId) {
+        continue;
+      }
+
+      const vehicle = this.world.getEntityById(vehicleId);
+
+      if (!vehicle) {
+        continue;
+      }
+
       const body = vehicle.getComponent(Body);
       const arsenal = vehicle.getComponent(Arsenal);
       const capacitor = vehicle.getComponent(Capacitor);
 
-      if (inputs.thrustForward || inputs.thrustReverse) {
-        const thrust = getVehicleThrust(inputs);
+      if (input.thrustForward || input.thrustReverse) {
+        const thrust = getVehicleThrust(input);
         const cost =
           Math.abs(thrust) * VEHICLE_ENERGY_COST_PER_THRUST_PER_S * deltaTimeS;
 
@@ -55,12 +67,12 @@ export class VehicleSystem extends System<{ physics: PhysicsSystem }> {
         }
       }
 
-      if (inputs.turnLeft || inputs.turnRight) {
-        const turn = getVehicleTurn(inputs);
+      if (input.turnLeft || input.turnRight) {
+        const turn = getVehicleTurn(input);
         this.world.systems.physics.rotateBody(vehicle, turn);
       }
 
-      if (inputs.activateWeapon) {
+      if (input.activateWeapon) {
         const weapon = arsenal.weapons[arsenal.activeWeapon];
 
         if (weapon) {

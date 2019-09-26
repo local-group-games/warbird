@@ -5,9 +5,13 @@ import { Arsenal } from "../components/Arsenal";
 import { Body } from "../components/Body";
 import { Capacitor } from "../components/Capacitor";
 import { EntityType } from "../EntityType";
+import { type } from "@colyseus/schema";
 
 export class Ship extends Entity {
   type = EntityType.Ship;
+
+  @type("string")
+  playerId: string | null = null;
 
   constructor() {
     super();
@@ -41,4 +45,8 @@ export class Ship extends Entity {
       vehicle,
     );
   }
+}
+
+export function isShip(entity: Entity): entity is Ship {
+  return entity.type === EntityType.Ship;
 }

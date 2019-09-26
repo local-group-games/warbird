@@ -85,18 +85,20 @@ async function main() {
   const scene = await createScene(canvas);
 
   const onPlayerChange = (changes: DataChange<any>[]) => {
-    const shipIdChange = changes.find(change => change.field === "shipId");
+    const vehicleIdChange = changes.find(
+      change => change.field === "vehicleId",
+    );
 
-    if (shipIdChange) {
-      scene.setCameraTarget(room.state.entities[shipIdChange.value]);
+    if (vehicleIdChange) {
+      scene.setCameraTarget(room.state.entities[vehicleIdChange.value]);
     }
   };
   const onPlayerAdd = (player: Player) => {
     if (player.id === room.sessionId) {
       player.onChange = onPlayerChange;
 
-      if (player.shipId) {
-        scene.setCameraTarget(room.state.entities[player.shipId]);
+      if (player.vehicleId) {
+        scene.setCameraTarget(room.state.entities[player.vehicleId]);
       }
     }
   };

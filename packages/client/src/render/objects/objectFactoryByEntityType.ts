@@ -1,13 +1,13 @@
-import { Entity, EntityType } from "@warbird/core";
-import { RenderObject } from "../../types";
+import { EntityType } from "@warbird/core";
 import { createBall } from "./createBall";
 import { createProjectile } from "./createProjectile";
 import { createShip } from "./createShip";
 import { createTile } from "./createTile";
 import { createWreck } from "./createWreck";
+import { RenderObject } from "../../types";
 
 export const objectFactoryByEntityType: {
-  [key: number]: (entity: Entity) => RenderObject | Promise<RenderObject>;
+  [K in EntityType]: (...args: any[]) => Promise<RenderObject>;
 } = {
   [EntityType.Ball]: createBall,
   [EntityType.Bullet]: createProjectile,

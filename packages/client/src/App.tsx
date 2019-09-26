@@ -6,6 +6,7 @@ import {
   Entity,
   RoomState,
   Ship,
+  Player,
 } from "@warbird/core";
 import { Root } from "@warbird/ui";
 import { Room } from "colyseus.js";
@@ -48,11 +49,11 @@ export function App(props: AppProps) {
 
   useEffect(() => {
     const onStateChange = () => {
-      const player = props.room.state.players[props.room.sessionId];
+      const player: Player = props.room.state.players[props.room.sessionId];
 
-      if (!player) return;
+      if (!player || !player.vehicleId) return;
 
-      const ship = props.room.state.entities[player.shipId];
+      const ship = props.room.state.entities[player.vehicleId];
 
       if (ship && ship !== playerShip) {
         setPlayerShip(ship);
