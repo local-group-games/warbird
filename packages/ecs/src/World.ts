@@ -6,14 +6,6 @@ import { Entity } from "./Entity";
 import { PureSystem, System } from "./System";
 import { Constructor } from "./types";
 
-export enum EntityChangeType {
-  Added = "added",
-  Updated = "updated",
-  Removed = "removed",
-}
-
-export type ChangeMap = { [K in EntityChangeType]: Set<Entity> };
-
 export class World<S extends { [key: string]: System } = {}> {
   private readonly schema: MapSchema<Entity>;
   private readonly cache = new Map<string, Entity[]>();
@@ -23,7 +15,7 @@ export class World<S extends { [key: string]: System } = {}> {
   private removing = new Set<Entity>();
 
   readonly clock: Clock;
-  readonly changes: ChangeMap = {
+  readonly changes = {
     added: new Set<Entity>(),
     updated: new Set<Entity>(),
     removed: new Set<Entity>(),
@@ -58,7 +50,7 @@ export class World<S extends { [key: string]: System } = {}> {
 
   getEntitiesByComponent<C extends Constructor<Component>>(...ctors: C[]) {
     const types = ctors.map(c => c.prototype.getType());
-    const cacheKey = types.sort((a, b) => a.type - b.type).toString();
+    const cacheKey = types.sort((a, b) => a - b).toString();
     const result = this.cache.get(cacheKey) || [];
 
     if (result.length === 0) {
@@ -77,15 +69,17 @@ export class World<S extends { [key: string]: System } = {}> {
     return result;
   }
 
-  registerEntity(entity: Entity) {
+  registerEntity = (entity: Entity) => {
+    this.schema[entity.id] = entity;
     this.changes.added.add(entity);
     this.entities.add(entity.id);
-  }
+  };
 
-  unregisterEntity(entity: Entity) {
+  unregisterEntity = (entity: Entity) => {
+    delete this.schema[entity.id];
     this.changes.removed.add(entity);
     this.entities.delete(entity.id);
-  }
+  };
 
   tick() {
     for (const systemKey in this.systems) {
@@ -101,14 +95,8 @@ export class World<S extends { [key: string]: System } = {}> {
     this.changes.updated.clear();
 
     // Process additions and removals
-    this.adding.forEach(entity => {
-      this.schema[entity.id] = entity;
-      this.registerEntity(entity);
-    });
-    this.removing.forEach(entity => {
-      delete this.schema[entity.id];
-      this.unregisterEntity(entity);
-    });
+    this.adding.forEach(this.registerEntity);
+    this.removing.forEach(this.unregisterEntity);
 
     this.adding.clear();
     this.removing.clear();

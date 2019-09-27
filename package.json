@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "lerna": "^3.10.7",
-    "typescript": "^3.5.3"
+    "typescript": "^3.6.3"
   },
   "devDependencies": {
     "nodemon": "^1.19.1"

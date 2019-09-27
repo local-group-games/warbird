@@ -13,7 +13,7 @@ export function useComponent<T extends Constructor<Component>[]>(
   const forceUpdate = useForceUpdate();
   const out = useMemo(
     () => ctors.map(ctor => Entity.getComponent(entity, ctor)),
-    [ctors],
+    [entity],
   );
 
   useEffect(() => {

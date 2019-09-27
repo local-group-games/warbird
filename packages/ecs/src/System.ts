@@ -1,4 +1,4 @@
-import { World, ChangeMap } from "./World";
+import { World } from "./World";
 
 export type PureSystem<S extends { [key: string]: System } = {}> = (
   world: World<S>,

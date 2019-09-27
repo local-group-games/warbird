@@ -65,7 +65,6 @@ async function connect<S>(
 }
 
 async function main() {
-  const { Vector3 } = await import("three");
   const ui = document.getElementById("ui") as HTMLElement;
   const canvas = document.getElementById("game") as HTMLCanvasElement;
   const client = new Client(
@@ -74,17 +73,17 @@ async function main() {
       window.location.hostname,
     )}`,
   );
-
-  const [room] = await Promise.all([
+  const [room, { Vector3 }] = await Promise.all([
     connect<RoomState>(
       client,
       "main",
     ),
+    import("three"),
     preload(),
   ]);
   const scene = await createScene(canvas);
 
-  const onPlayerChange = (changes: DataChange<any>[]) => {
+  function onPlayerChange(changes: DataChange<any>[]) {
     const vehicleIdChange = changes.find(
       change => change.field === "vehicleId",
     );
@@ -92,8 +91,8 @@ async function main() {
     if (vehicleIdChange) {
       scene.setCameraTarget(room.state.entities[vehicleIdChange.value]);
     }
-  };
-  const onPlayerAdd = (player: Player) => {
+  }
+  function onPlayerAdd(player: Player) {
     if (player.id === room.sessionId) {
       player.onChange = onPlayerChange;
 
@@ -101,9 +100,11 @@ async function main() {
         scene.setCameraTarget(room.state.entities[player.vehicleId]);
       }
     }
-  };
-  const onEntityAdd = (entity: Entity) => scene.addObject(entity);
-  const onEntityRemove = async (entity: Entity) => {
+  }
+  function onEntityAdd(entity: Entity) {
+    return scene.addObject(entity);
+  }
+  async function onEntityRemove(entity: Entity) {
     scene.removeObject(entity);
 
     if (entity.type === EntityType.Ship) {
@@ -112,7 +113,7 @@ async function main() {
 
       scene.addAnimation(explosion);
     }
-  };
+  }
 
   for (const entityId in room.state.entities) {
     onEntityAdd(room.state.entities[entityId]);
