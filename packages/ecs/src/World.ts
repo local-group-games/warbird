@@ -74,16 +74,10 @@ export class World<S extends { [key: string]: System } = {}> {
 
       for (const queryName in query) {
         const select = query[queryName];
-        const subResult = result[queryName] as Entity[];
+        const entities = result[queryName];
 
-        if (Array.isArray(select)) {
-          if (select.every(ctor => entity.hasComponent(ctor))) {
-            subResult.push(entity);
-          }
-        } else {
-          if (entity.hasComponent(select)) {
-            subResult.push(entity);
-          }
+        if (select.every(ctor => entity.hasComponent(ctor))) {
+          entities.push(entity);
         }
       }
     }
@@ -95,25 +89,18 @@ export class World<S extends { [key: string]: System } = {}> {
     this.entities.delete(entity.id);
 
     for (const [system, query] of this.queryBySystem) {
-      let result = this.queryResultBySystem.get(system);
+      const result = this.queryResultBySystem.get(system);
 
       if (!result) {
-        result = getInitialQueryResult(query);
-        this.queryResultBySystem.set(system, result);
+        continue;
       }
 
       for (const queryName in query) {
         const select = query[queryName];
-        const subResult = result[queryName] as Entity[];
+        const entities = result[queryName] as Entity[];
 
-        if (Array.isArray(select)) {
-          if (select.every(ctor => entity.hasComponent(ctor))) {
-            subResult.splice(subResult.indexOf(entity), 1);
-          }
-        } else {
-          if (entity.hasComponent(select)) {
-            subResult.splice(subResult.indexOf(entity), 1);
-          }
+        if (select.every(ctor => entity.hasComponent(ctor))) {
+          entities.splice(entities.indexOf(entity), 1);
         }
       }
     }
