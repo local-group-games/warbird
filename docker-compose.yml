@@ -24,5 +24,19 @@ services:
       - net_backend
     depends_on:
       - server
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: warbird
+      POSTGRES_PASSWORD: warbird
+      POSTGRES_DB: warbird
+    ports:
+      - 54320:54320
+    networks:
+      - net_backend
+    volumes:
+      - data_db:/var/lib/postgresql/data
+volumes:
+  data_db:
 networks:
   net_backend:
