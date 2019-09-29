@@ -26,6 +26,9 @@ export class Wreck extends Entity {
 
     expireable.lifeTimeMs = 10000;
 
-    this.addComponent(body, expireable, destructible, pickup);
+    this.addComponent(body);
+    this.addComponent(expireable);
+    this.addComponent(destructible);
+    this.addComponent(pickup);
   }
 }

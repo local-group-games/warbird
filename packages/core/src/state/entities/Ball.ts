@@ -29,6 +29,8 @@ export class Ball extends Entity {
 
     inventory.scrap = 1;
 
-    this.addComponent(body, destructible, inventory);
+    this.addComponent(body);
+    this.addComponent(destructible);
+    this.addComponent(inventory);
   }
 }

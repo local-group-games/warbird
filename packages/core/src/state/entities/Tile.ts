@@ -21,6 +21,8 @@ export class Tile extends Entity {
 
     destructible.health = 100;
 
-    this.addComponent(body, expireable, destructible);
+    this.addComponent(body);
+    this.addComponent(expireable);
+    this.addComponent(destructible);
   }
 }

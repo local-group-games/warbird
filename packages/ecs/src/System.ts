@@ -1,10 +1,15 @@
+import { Query, QueryConfig, QueryResult } from "./Query";
 import { World } from "./World";
 
-export type PureSystem<S extends { [key: string]: System } = {}> = (
-  world: World<S>,
-) => void;
+export type PureSystem<
+  C extends QueryConfig = QueryConfig,
+  S extends { [key: string]: System } = {}
+> = (world: World<S>, results: QueryResult<Query<C>>) => void;
 
-export abstract class System<S extends { [key: string]: System } = {}> {
+export abstract class System<
+  C extends QueryConfig = QueryConfig,
+  S extends { [key: string]: System } = {}
+> {
   private _world: World<S> | null = null;
 
   protected get world() {
@@ -17,9 +22,11 @@ export abstract class System<S extends { [key: string]: System } = {}> {
     return this._world;
   }
 
+  abstract readonly query: Query<C>;
+
   initialize(world: World<S>) {
     this._world = world;
   }
 
-  abstract execute(): void;
+  abstract execute(entities: QueryResult<Query<C>>): void;
 }

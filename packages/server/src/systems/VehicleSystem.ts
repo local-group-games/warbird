@@ -4,10 +4,10 @@ import {
   Bullet,
   Capacitor,
   Expireable,
-  PlayerInputs,
   Player,
+  PlayerInputs,
 } from "@warbird/core";
-import { Entity, System } from "@warbird/ecs";
+import { System } from "@warbird/ecs";
 import { PhysicsSystem } from "./PhysicsSystem";
 
 const VEHICLE_BASE_TURN = 0.05;
@@ -27,8 +27,10 @@ export function getVehicleTurn(input: PlayerInputs) {
   return (Number(input.turnLeft) - Number(input.turnRight)) * VEHICLE_BASE_TURN;
 }
 
-export class VehicleSystem extends System<{ physics: PhysicsSystem }> {
+export class VehicleSystem extends System<{}, { physics: PhysicsSystem }> {
   private inputsToApply: Player[] = [];
+
+  query = {};
 
   applyInput(player: Player) {
     this.inputsToApply.push(player);

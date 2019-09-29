@@ -13,6 +13,9 @@ import {
   Weapon,
   World,
   isShip,
+  Pickup,
+  Projectile,
+  Capacitor,
 } from "@warbird/core";
 import { Client, Room } from "colyseus";
 import {
@@ -50,13 +53,19 @@ export abstract class BaseRoom extends Room<RoomState> {
 
     this._world = world;
 
-    this.world.registerPureSystem(
-      PickupSystem,
-      DestructibleSystem,
-      ProjectileCollisionSystem,
-      CapacitorSystem,
-      ExpireableSystem,
-    );
+    this.world.registerPureSystem(PickupSystem, {
+      pickups: [Pickup],
+    });
+    this.world.registerPureSystem(DestructibleSystem, {
+      destructibles: [Body, Destructible],
+    });
+    this.world.registerPureSystem(ProjectileCollisionSystem, {
+      projectiles: [Projectile],
+    });
+    this.world.registerPureSystem(CapacitorSystem, { capacitors: [Capacitor] });
+    this.world.registerPureSystem(ExpireableSystem, {
+      expireables: [Expireable],
+    });
 
     this.setState(state);
     this.setPatchRate((1 / 30) * 1000);
@@ -141,7 +150,7 @@ export abstract class BaseRoom extends Room<RoomState> {
 
         const queryWidth = tileBody.width / 2 - 0.01;
         const queryHeight = tileBody.height / 2 - 0.01;
-        const query = this.world.systems.physics.query(
+        const query = this.world.systems.physics.aabbQuery(
           x,
           y,
           x + queryWidth,

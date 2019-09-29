@@ -36,14 +36,12 @@ export class Ship extends Entity {
       CollisionGroup.Projectile |
       CollisionGroup.Static;
 
-    this.addComponent(
-      capacitor,
-      destructible,
-      arsenal,
-      body,
-      inventory,
-      vehicle,
-    );
+    this.addComponent(capacitor);
+    this.addComponent(destructible);
+    this.addComponent(arsenal);
+    this.addComponent(body);
+    this.addComponent(inventory);
+    this.addComponent(vehicle);
   }
 }
 

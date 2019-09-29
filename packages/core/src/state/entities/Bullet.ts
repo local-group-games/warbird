@@ -24,6 +24,8 @@ export class Bullet extends Entity {
 
     expireable.lifeTimeMs = 1000;
 
-    this.addComponent(projectile, expireable, body);
+    this.addComponent(projectile);
+    this.addComponent(expireable);
+    this.addComponent(body);
   }
 }

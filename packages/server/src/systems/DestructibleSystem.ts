@@ -1,11 +1,18 @@
 import { Body, Destructible, Inventory, Pickup, Wreck } from "@warbird/core";
 import { PureSystem } from "@warbird/ecs";
 
-export const DestructibleSystem: PureSystem = world => {
-  const entities = world.getEntitiesByComponent(Destructible);
+type DestructibleQuery = {
+  destructibles: Body | Destructible;
+};
 
-  for (let i = 0; i < entities.length; i++) {
-    const entity = entities[i];
+export const DestructibleSystem: PureSystem<DestructibleQuery> = (
+  world,
+  query,
+) => {
+  const { destructibles } = query;
+
+  for (let i = 0; i < destructibles.length; i++) {
+    const entity = destructibles[i];
     const body = entity.getComponent(Body);
     const destructible = entity.getComponent(Destructible);
     const inventory = entity.tryGetComponent(Inventory);

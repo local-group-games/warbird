@@ -1,5 +1,5 @@
 import { Body } from "@warbird/core";
-import { Entity, System } from "@warbird/ecs";
+import { Entity, Query, QueryResult, System } from "@warbird/ecs";
 import { AABB, Body as P2Body, Box, World as P2World } from "p2";
 
 export type CollisionHandler = (a: Body, b: Body) => void;
@@ -79,12 +79,18 @@ export function buildP2BodyFromEntity(entity: Entity) {
   return p2Body;
 }
 
-export class PhysicsSystem extends System {
+export type PhysicsQuery = {
+  bodies: Body;
+};
+
+export class PhysicsSystem extends System<PhysicsQuery> {
   static FORCE = [0, 0] as [number, number];
 
   private p2World: P2World;
   private p2BodiesByEntityId = new Map<string, P2Body>();
   private entityIdsByP2Body = new Map<P2Body, string>();
+
+  query = { bodies: [Body] };
 
   constructor(options: PhysicsSystemOptions = {}) {
     super();
@@ -130,7 +136,7 @@ export class PhysicsSystem extends System {
     bodyB.collisions.delete(entityA);
   };
 
-  query(x1: number, y1: number, x2: number, y2: number) {
+  aabbQuery(x1: number, y1: number, x2: number, y2: number) {
     const aabb = new AABB({
       lowerBound: [x1, y1],
       upperBound: [x2, y2],
@@ -169,9 +175,9 @@ export class PhysicsSystem extends System {
     }
   }
 
-  execute() {
+  execute(query: QueryResult<Query<PhysicsQuery>>) {
+    const { bodies } = query;
     const deltaTimeS = this.world.clock.deltaTime / 1000;
-    const entities = this.world.getEntitiesByComponent(Body);
 
     for (const entity of this.world.changes.removed) {
       const body = entity.tryGetComponent(Body);
@@ -196,8 +202,8 @@ export class PhysicsSystem extends System {
       }
     }
 
-    for (let i = 0; i < entities.length; i++) {
-      const entity = entities[i];
+    for (let i = 0; i < bodies.length; i++) {
+      const entity = bodies[i];
 
       if (this.world.changes.added.has(entity)) {
         const p2Body = buildP2BodyFromEntity(entity);

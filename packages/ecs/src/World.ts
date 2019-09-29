@@ -1,16 +1,26 @@
-import { Clock, Server } from "colyseus";
 import { MapSchema } from "@colyseus/schema";
 import { ChangeTree } from "@colyseus/schema/lib/ChangeTree";
-import { Component } from "./Component";
+import { Clock } from "colyseus";
 import { Entity } from "./Entity";
+import { Query, QueryConfig, QueryResult } from "./Query";
 import { PureSystem, System } from "./System";
-import { Constructor } from "./types";
+
+function getInitialQueryResult<Q extends Query>(query: Q) {
+  const result = {};
+
+  for (const queryName in query) {
+    (result as any)[queryName] = [];
+  }
+
+  return result as QueryResult<Q>;
+}
 
 export class World<S extends { [key: string]: System } = {}> {
   private readonly schema: MapSchema<Entity>;
-  private readonly cache = new Map<string, Entity[]>();
   private entities = new Set<string>();
   private pureSystems: PureSystem[] = [];
+  private queryBySystem = new Map<System | PureSystem, Query>();
+  private queryResultBySystem = new Map<System | PureSystem, QueryResult>();
   private adding = new Set<Entity>();
   private removing = new Set<Entity>();
 
@@ -28,7 +38,10 @@ export class World<S extends { [key: string]: System } = {}> {
     this.systems = systems as S;
 
     for (const systemKey in this.systems) {
-      this.systems[systemKey].initialize(this);
+      const system = this.systems[systemKey];
+
+      system.initialize(this);
+      this.queryBySystem.set(system, system.query);
     }
 
     for (const entityId in schema) {
@@ -36,78 +49,109 @@ export class World<S extends { [key: string]: System } = {}> {
     }
   }
 
-  registerPureSystem(...pureSystems: PureSystem[]) {
-    for (let i = 0; i < pureSystems.length; i++) {
-      const system = pureSystems[i];
+  registerPureSystem<C extends QueryConfig>(
+    pureSystem: PureSystem<C>,
+    query: Query<C>,
+  ) {
+    const system = pureSystem as PureSystem;
 
-      if (this.pureSystems.indexOf(system) > -1) {
-        return;
-      }
-
-      this.pureSystems.push(system);
-    }
-  }
-
-  getEntitiesByComponent<C extends Constructor<Component>>(...ctors: C[]) {
-    const types = ctors.map(c => c.prototype.getType());
-    const cacheKey = types.sort((a, b) => a - b).toString();
-    const result = this.cache.get(cacheKey) || [];
-
-    if (result.length === 0) {
-      for (const entityId in this.schema) {
-        const entity: Entity = this.schema[entityId];
-        const typeMatch = ctors.some(ctor => entity.hasComponent(ctor));
-
-        if (typeMatch) {
-          result.push(entity);
-        }
-      }
-
-      this.cache.set(cacheKey, result);
-    }
-
-    return result;
+    this.pureSystems.push(system);
+    this.queryBySystem.set(system, query);
   }
 
   registerEntity = (entity: Entity) => {
     this.schema[entity.id] = entity;
     this.changes.added.add(entity);
     this.entities.add(entity.id);
+
+    for (const [system, query] of this.queryBySystem) {
+      let result = this.queryResultBySystem.get(system);
+
+      if (!result) {
+        result = getInitialQueryResult(query);
+        this.queryResultBySystem.set(system, result);
+      }
+
+      for (const queryName in query) {
+        const select = query[queryName];
+        const subResult = result[queryName] as Entity[];
+
+        if (Array.isArray(select)) {
+          if (select.every(ctor => entity.hasComponent(ctor))) {
+            subResult.push(entity);
+          }
+        } else {
+          if (entity.hasComponent(select)) {
+            subResult.push(entity);
+          }
+        }
+      }
+    }
   };
 
   unregisterEntity = (entity: Entity) => {
     delete this.schema[entity.id];
     this.changes.removed.add(entity);
     this.entities.delete(entity.id);
+
+    for (const [system, query] of this.queryBySystem) {
+      let result = this.queryResultBySystem.get(system);
+
+      if (!result) {
+        result = getInitialQueryResult(query);
+        this.queryResultBySystem.set(system, result);
+      }
+
+      for (const queryName in query) {
+        const select = query[queryName];
+        const subResult = result[queryName] as Entity[];
+
+        if (Array.isArray(select)) {
+          if (select.every(ctor => entity.hasComponent(ctor))) {
+            subResult.splice(subResult.indexOf(entity), 1);
+          }
+        } else {
+          if (entity.hasComponent(select)) {
+            subResult.splice(subResult.indexOf(entity), 1);
+          }
+        }
+      }
+    }
   };
 
   tick() {
     for (const systemKey in this.systems) {
-      this.systems[systemKey].execute();
+      const system = this.systems[systemKey];
+      const result = this.queryResultBySystem.get(system);
+
+      if (result) {
+        system.execute(result);
+      }
     }
 
     for (let i = 0; i < this.pureSystems.length; i++) {
-      this.pureSystems[i](this);
+      const system = this.pureSystems[i];
+      const result = this.queryResultBySystem.get(system);
+
+      if (result) {
+        system(this, result);
+      }
     }
 
     this.changes.added.clear();
     this.changes.removed.clear();
     this.changes.updated.clear();
 
-    // Process additions and removals
-    this.adding.forEach(this.registerEntity);
-    this.removing.forEach(this.unregisterEntity);
-
-    this.adding.clear();
-    this.removing.clear();
-
-    this.cache.forEach(arr => (arr.length = 0));
-
     const changes = (this.schema as any).$changes as ChangeTree;
 
     for (const entityId of changes.changes as string[]) {
       this.changes.updated.add(this.schema[entityId]);
     }
+
+    this.adding.forEach(this.registerEntity);
+    this.removing.forEach(this.unregisterEntity);
+    this.adding.clear();
+    this.removing.clear();
   }
 
   addEntity(entity: Entity) {
