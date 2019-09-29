@@ -6,25 +6,27 @@ import {
   GameMessage,
   GameMessageType,
   Inventory,
+  isShip,
   Player,
   RoomState,
   Ship,
   Tile,
   Weapon,
   World,
-  isShip,
-  Pickup,
-  Projectile,
-  Capacitor,
 } from "@warbird/core";
 import { Client, Room } from "colyseus";
 import {
   CapacitorSystem,
+  CAPACITOR_QUERY,
   DestructibleSystem,
+  DESTRUCTIBLE_QUERY,
   ExpireableSystem,
+  EXPIREABLE_QUERY,
   PhysicsSystem,
   PickupSystem,
+  PICKUP_QUERY,
   ProjectileCollisionSystem,
+  PROJECTILE_QUERY,
   VehicleSystem,
 } from "../systems";
 
@@ -53,19 +55,11 @@ export abstract class BaseRoom extends Room<RoomState> {
 
     this._world = world;
 
-    this.world.registerPureSystem(PickupSystem, {
-      pickups: [Pickup],
-    });
-    this.world.registerPureSystem(DestructibleSystem, {
-      destructibles: [Body, Destructible],
-    });
-    this.world.registerPureSystem(ProjectileCollisionSystem, {
-      projectiles: [Projectile],
-    });
-    this.world.registerPureSystem(CapacitorSystem, { capacitors: [Capacitor] });
-    this.world.registerPureSystem(ExpireableSystem, {
-      expireables: [Expireable],
-    });
+    this.world.registerPureSystem(PickupSystem, PICKUP_QUERY);
+    this.world.registerPureSystem(DestructibleSystem, DESTRUCTIBLE_QUERY);
+    this.world.registerPureSystem(ProjectileCollisionSystem, PROJECTILE_QUERY);
+    this.world.registerPureSystem(CapacitorSystem, CAPACITOR_QUERY);
+    this.world.registerPureSystem(ExpireableSystem, EXPIREABLE_QUERY);
 
     this.setState(state);
     this.setPatchRate((1 / 30) * 1000);

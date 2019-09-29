@@ -1,8 +1,12 @@
 import { Capacitor } from "@warbird/core";
-import { PureSystem } from "@warbird/ecs";
+import { PureSystem, Query } from "@warbird/ecs";
 
 export type CapacitorQuery = {
   entities: Capacitor;
+};
+
+export const CAPACITOR_QUERY: Query<CapacitorQuery> = {
+  entities: [Capacitor],
 };
 
 export const CapacitorSystem: PureSystem<CapacitorQuery> = (world, query) => {

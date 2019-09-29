@@ -1,8 +1,12 @@
 import { Body, Destructible, Projectile } from "@warbird/core";
-import { PureSystem } from "@warbird/ecs";
+import { PureSystem, Query } from "@warbird/ecs";
 
 export type ProjectileQuery = {
   entities: Body | Projectile;
+};
+
+export const PROJECTILE_QUERY: Query<ProjectileQuery> = {
+  entities: [Body, Projectile],
 };
 
 export const ProjectileCollisionSystem: PureSystem<ProjectileQuery> = (

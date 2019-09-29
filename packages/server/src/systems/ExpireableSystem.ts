@@ -1,8 +1,12 @@
 import { Expireable } from "@warbird/core";
-import { PureSystem } from "@warbird/ecs";
+import { PureSystem, Query } from "@warbird/ecs";
 
 export type ExpireableQuery = {
   entities: Expireable;
+};
+
+export const EXPIREABLE_QUERY: Query<ExpireableQuery> = {
+  entities: [Expireable],
 };
 
 export const ExpireableSystem: PureSystem<ExpireableQuery> = (world, query) => {

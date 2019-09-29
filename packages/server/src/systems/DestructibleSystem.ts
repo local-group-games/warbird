@@ -1,8 +1,12 @@
 import { Body, Destructible, Inventory, Pickup, Wreck } from "@warbird/core";
-import { PureSystem } from "@warbird/ecs";
+import { PureSystem, Query } from "@warbird/ecs";
 
-type DestructibleQuery = {
+export type DestructibleQuery = {
   entities: Body | Destructible;
+};
+
+export const DESTRUCTIBLE_QUERY: Query<DestructibleQuery> = {
+  entities: [Body, Destructible],
 };
 
 export const DestructibleSystem: PureSystem<DestructibleQuery> = (

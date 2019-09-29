@@ -1,8 +1,12 @@
 import { Body, Inventory, Pickup, Vehicle } from "@warbird/core";
-import { PureSystem } from "@warbird/ecs";
+import { PureSystem, Query } from "@warbird/ecs";
 
 type PickupQuery = {
   entities: Pickup | Body;
+};
+
+export const PICKUP_QUERY: Query<PickupQuery> = {
+  entities: [Pickup, Body],
 };
 
 export const PickupSystem: PureSystem<PickupQuery> = (world, query) => {
