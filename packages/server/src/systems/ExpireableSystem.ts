@@ -2,14 +2,14 @@ import { Expireable } from "@warbird/core";
 import { PureSystem } from "@warbird/ecs";
 
 export type ExpireableQuery = {
-  expireables: Expireable;
+  entities: Expireable;
 };
 
 export const ExpireableSystem: PureSystem<ExpireableQuery> = (world, query) => {
-  const { expireables } = query;
+  const { entities } = query;
 
-  for (let i = 0; i < expireables.length; i++) {
-    const entity = expireables[i];
+  for (let i = 0; i < entities.length; i++) {
+    const entity = entities[i];
     const expireable = entity.getComponent(Expireable);
 
     if (world.changes.added.has(entity)) {

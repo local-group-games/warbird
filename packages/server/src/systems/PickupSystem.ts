@@ -2,12 +2,14 @@ import { Body, Inventory, Pickup, Vehicle } from "@warbird/core";
 import { PureSystem } from "@warbird/ecs";
 
 type PickupQuery = {
-  pickups: Pickup | Body;
+  entities: Pickup | Body;
 };
 
-export const PickupSystem: PureSystem<PickupQuery> = (world, { pickups }) => {
-  for (let i = 0; i < pickups.length; i++) {
-    const entity = pickups[i];
+export const PickupSystem: PureSystem<PickupQuery> = (world, query) => {
+  const { entities } = query;
+
+  for (let i = 0; i < entities.length; i++) {
+    const entity = entities[i];
     const body = entity.getComponent(Body);
     const pickup = entity.getComponent(Pickup);
 

@@ -80,7 +80,7 @@ export function buildP2BodyFromEntity(entity: Entity) {
 }
 
 export type PhysicsQuery = {
-  bodies: Body;
+  entities: Body;
 };
 
 export class PhysicsSystem extends System<PhysicsQuery> {
@@ -90,7 +90,7 @@ export class PhysicsSystem extends System<PhysicsQuery> {
   private p2BodiesByEntityId = new Map<string, P2Body>();
   private entityIdsByP2Body = new Map<P2Body, string>();
 
-  query = { bodies: [Body] };
+  query = { entities: [Body] };
 
   constructor(options: PhysicsSystemOptions = {}) {
     super();
@@ -176,7 +176,7 @@ export class PhysicsSystem extends System<PhysicsQuery> {
   }
 
   execute(query: QueryResult<Query<PhysicsQuery>>) {
-    const { bodies } = query;
+    const { entities } = query;
     const deltaTimeS = this.world.clock.deltaTime / 1000;
 
     for (const entity of this.world.changes.removed) {
@@ -202,8 +202,8 @@ export class PhysicsSystem extends System<PhysicsQuery> {
       }
     }
 
-    for (let i = 0; i < bodies.length; i++) {
-      const entity = bodies[i];
+    for (let i = 0; i < entities.length; i++) {
+      const entity = entities[i];
 
       if (this.world.changes.added.has(entity)) {
         const p2Body = buildP2BodyFromEntity(entity);
