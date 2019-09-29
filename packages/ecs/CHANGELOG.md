@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.17.0](https://github.com/local-group-games/warbird/compare/v0.16.0...v0.17.0) (2019-09-29)
+
+
+### Features
+
+* remove redundant Array.isArray check ([e2106b4](https://github.com/local-group-games/warbird/commit/e2106b4))
+* **ecs:** smarter caching of queries ([a420e42](https://github.com/local-group-games/warbird/commit/a420e42))
+* upgrade typescript to 3.6.3 ([59807ce](https://github.com/local-group-games/warbird/commit/59807ce))
+
+
+
+
+
 # [0.16.0](https://github.com/local-group-games/warbird/compare/v0.15.0...v0.16.0) (2019-09-26)
 
 **Note:** Version bump only for package @warbird/ecs
