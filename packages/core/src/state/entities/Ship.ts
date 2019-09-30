@@ -2,7 +2,7 @@ import { Entity } from "@warbird/ecs";
 import { CollisionGroup } from "../CollisionGroup";
 import { Destructible, Inventory, Vehicle } from "../components";
 import { Arsenal } from "../components/Arsenal";
-import { Body } from "../components/Body";
+import { Physical } from "../components/Physical";
 import { Capacitor } from "../components/Capacitor";
 import { EntityType } from "../EntityType";
 import { type } from "@colyseus/schema";
@@ -19,7 +19,7 @@ export class Ship extends Entity {
     const capacitor = new Capacitor();
     const destructible = new Destructible();
     const arsenal = new Arsenal();
-    const body = new Body();
+    const body = new Physical();
     const inventory = new Inventory();
     const vehicle = new Vehicle();
 

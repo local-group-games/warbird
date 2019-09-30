@@ -1,12 +1,12 @@
-import { Body, Destructible, Inventory, Pickup, Wreck } from "@warbird/core";
+import { Destructible, Inventory, Physical, Wreck } from "@warbird/core";
 import { PureSystem, Query } from "@warbird/ecs";
 
 export type DestructibleQuery = {
-  entities: Body | Destructible;
+  entities: Physical | Destructible;
 };
 
 export const DESTRUCTIBLE_QUERY: Query<DestructibleQuery> = {
-  entities: [Body, Destructible],
+  entities: [Physical, Destructible],
 };
 
 export const DestructibleSystem: PureSystem<DestructibleQuery> = (
@@ -17,7 +17,7 @@ export const DestructibleSystem: PureSystem<DestructibleQuery> = (
 
   for (let i = 0; i < entities.length; i++) {
     const entity = entities[i];
-    const body = entity.getComponent(Body);
+    const body = entity.getComponent(Physical);
     const destructible = entity.getComponent(Destructible);
     const inventory = entity.tryGetComponent(Inventory);
 
@@ -26,12 +26,12 @@ export const DestructibleSystem: PureSystem<DestructibleQuery> = (
 
       if (inventory) {
         const wreck = new Wreck();
-        const wreckBody = wreck.getComponent(Body);
-        const wreckPickup = wreck.getComponent(Pickup);
+        const wreckBody = wreck.getComponent(Physical);
+        const wreckInventory = wreck.getComponent(Inventory);
 
         wreckBody.x = body.x;
         wreckBody.y = body.y;
-        wreckPickup.scrap = inventory.scrap;
+        wreckInventory.scrap = inventory.scrap;
 
         world.addEntity(wreck);
       }

@@ -1,7 +1,7 @@
 import { Entity } from "@warbird/ecs";
 import { CollisionGroup } from "../CollisionGroup";
 import { Destructible, Inventory } from "../components";
-import { Body } from "../components/Body";
+import { Physical } from "../components/Physical";
 import { EntityType } from "../EntityType";
 
 export class Ball extends Entity {
@@ -10,7 +10,7 @@ export class Ball extends Entity {
   constructor() {
     super();
 
-    const body = new Body();
+    const body = new Physical();
     const destructible = new Destructible();
     const inventory = new Inventory();
 

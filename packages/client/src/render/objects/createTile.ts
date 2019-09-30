@@ -1,11 +1,11 @@
-import { Body, Destructible, Entity, Tile } from "@warbird/core";
+import { Physical, Destructible, Entity, Tile } from "@warbird/core";
 import { RenderObject } from "../../types";
 
 export async function createTile(tile: Tile): Promise<RenderObject> {
   const { BoxGeometry, Math, Mesh, MeshStandardMaterial } = await import(
     "three"
   );
-  const body = Entity.getComponent(tile, Body);
+  const body = Entity.getComponent(tile, Physical);
   const destructible = Entity.getComponent(tile, Destructible);
   const geometry = new BoxGeometry(body.width, body.height, 1);
   const material = new MeshStandardMaterial({

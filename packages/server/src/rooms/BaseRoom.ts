@@ -1,6 +1,6 @@
 import {
   Arsenal,
-  Body,
+  Physical,
   Destructible,
   Expireable,
   GameMessage,
@@ -69,7 +69,7 @@ export abstract class BaseRoom extends Room<RoomState> {
   spawn(player: Player) {
     const ship = new Ship();
     const shipDestructible = ship.getComponent(Destructible);
-    const shipBody = ship.getComponent(Body);
+    const shipBody = ship.getComponent(Physical);
     const arsenal = ship.getComponent(Arsenal);
     const weapon1 = new Weapon();
     const weapon2 = new Weapon();
@@ -134,8 +134,8 @@ export abstract class BaseRoom extends Room<RoomState> {
         }
 
         const tile = new Tile();
-        const shipBody = ship.getComponent(Body);
-        const tileBody = tile.getComponent(Body);
+        const shipBody = ship.getComponent(Physical);
+        const tileBody = tile.getComponent(Physical);
         const tileExpireable = tile.getComponent(Expireable);
 
         tileExpireable.lifeTimeMs = 30 * 60 * 1000;

@@ -1,6 +1,6 @@
 import { DataChange } from "@colyseus/schema";
 import {
-  Body,
+  Physical,
   changeWeapon,
   command,
   Entity,
@@ -108,7 +108,7 @@ async function main() {
     scene.removeObject(entity);
 
     if (entity.type === EntityType.Ship) {
-      const shipBody = Entity.getComponent(entity, Body);
+      const shipBody = Entity.getComponent(entity, Physical);
       const explosion = await createExplosion(shipBody.x, shipBody.y);
 
       scene.addAnimation(explosion);

@@ -1,5 +1,5 @@
 export * from "./Arsenal";
-export * from "./Body";
+export * from "./Physical";
 export * from "./Capacitor";
 export * from "./Destructible";
 export * from "./Expireable";
