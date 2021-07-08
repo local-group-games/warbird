@@ -24,3 +24,15 @@ services:
       - .:/app/
       - /app/node_modules
       - /app/packages/client/node_modules
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: warbird
+      POSTGRES_PASSWORD: warbird
+      POSTGRES_DB: warbird
+    ports:
+      - 54320:54320
+    volumes:
+      - data_db:/var/lib/postgresql/data
+volumes:
+  data_db:

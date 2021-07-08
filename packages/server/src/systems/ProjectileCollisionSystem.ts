@@ -1,12 +1,12 @@
-import { Body, Destructible, Projectile } from "@warbird/core";
+import { Physical, Destructible, Projectile } from "@warbird/core";
 import { PureSystem, Query } from "@warbird/ecs";
 
 export type ProjectileQuery = {
-  entities: Body | Projectile;
+  entities: Physical | Projectile;
 };
 
 export const PROJECTILE_QUERY: Query<ProjectileQuery> = {
-  entities: [Body, Projectile],
+  entities: [Physical, Projectile],
 };
 
 export const ProjectileCollisionSystem: PureSystem<ProjectileQuery> = (
@@ -17,7 +17,7 @@ export const ProjectileCollisionSystem: PureSystem<ProjectileQuery> = (
 
   for (let i = 0; i < entities.length; i++) {
     const projectileEntity = entities[i];
-    const body = projectileEntity.getComponent(Body);
+    const body = projectileEntity.getComponent(Physical);
 
     body.collisions.forEach(entity => {
       const destructible = entity.tryGetComponent(Destructible);

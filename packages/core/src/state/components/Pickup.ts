@@ -6,7 +6,4 @@ export class Pickup extends Component {
   getType() {
     return ComponentType.Pickup;
   }
-
-  @type("uint16")
-  scrap: number = 0;
 }

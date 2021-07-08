@@ -1,6 +1,6 @@
 import {
   Arsenal,
-  Body,
+  Physical,
   Bullet,
   Capacitor,
   Expireable,
@@ -54,7 +54,7 @@ export class VehicleSystem extends System<{}, { physics: PhysicsSystem }> {
         continue;
       }
 
-      const body = vehicle.getComponent(Body);
+      const body = vehicle.getComponent(Physical);
       const arsenal = vehicle.getComponent(Arsenal);
       const capacitor = vehicle.getComponent(Capacitor);
 
@@ -84,7 +84,7 @@ export class VehicleSystem extends System<{}, { physics: PhysicsSystem }> {
               weapon.fireRate * 100
           ) {
             const bullet = new Bullet();
-            const bulletBody = bullet.getComponent(Body);
+            const bulletBody = bullet.getComponent(Physical);
             const bulletExpireable = bullet.getComponent(Expireable);
             const s = Math.sin(body.angle);
             const c = Math.cos(body.angle);

@@ -1,10 +1,10 @@
-import { Body, Bullet, Entity } from "@warbird/core";
+import { Physical, Bullet, Entity } from "@warbird/core";
 import { interpolateEntity } from "../helpers/interpolateEntity";
 import { RenderObject } from "../../types";
 
 export async function createProjectile(bullet: Bullet): Promise<RenderObject> {
   const { CircleGeometry, Mesh, MeshStandardMaterial } = await import("three");
-  const body = Entity.getComponent(bullet, Body);
+  const body = Entity.getComponent(bullet, Physical);
   const geometry = new CircleGeometry(body.width / 3, 6);
   const material = new MeshStandardMaterial({
     color: 0xefdfaa,

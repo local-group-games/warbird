@@ -1,7 +1,7 @@
 import { Entity } from "@warbird/ecs";
 import { CollisionGroup } from "../CollisionGroup";
-import { Destructible } from "../components";
-import { Body } from "../components/Body";
+import { Destructible, Inventory } from "../components";
+import { Physical } from "../components/Physical";
 import { Expireable } from "../components/Expireable";
 import { Pickup } from "../components/Pickup";
 import { EntityType } from "../EntityType";
@@ -12,10 +12,11 @@ export class Wreck extends Entity {
   constructor() {
     super();
 
-    const body = new Body();
+    const body = new Physical();
     const expireable = new Expireable();
     const destructible = new Destructible();
     const pickup = new Pickup();
+    const inventory = new Inventory();
 
     destructible.health = 100;
 
@@ -30,5 +31,6 @@ export class Wreck extends Entity {
     this.addComponent(expireable);
     this.addComponent(destructible);
     this.addComponent(pickup);
+    this.addComponent(inventory);
   }
 }

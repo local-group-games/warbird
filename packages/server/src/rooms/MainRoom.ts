@@ -1,4 +1,4 @@
-import { Ball, Tile, Destructible, Body } from "@warbird/core";
+import { Ball, Tile, Destructible, Physical } from "@warbird/core";
 import { BaseRoom } from "./BaseRoom";
 
 const map: number[][] = [
@@ -17,7 +17,7 @@ export class MainRoom extends BaseRoom {
 
     for (const [x, y] of map) {
       const tile = new Tile();
-      const tileBody = tile.getComponent(Body);
+      const tileBody = tile.getComponent(Physical);
       const tileDestructible = tile.getComponent(Destructible);
       tileBody.x = x;
       tileBody.y = y;
@@ -27,7 +27,7 @@ export class MainRoom extends BaseRoom {
 
     for (let i = 0; i < 10; i++) {
       const ball = new Ball();
-      const ballBody = ball.getComponent(Body);
+      const ballBody = ball.getComponent(Physical);
       ballBody.x = Math.random() * -10;
       ballBody.y = Math.random() * -10;
       this.world.addEntity(ball);

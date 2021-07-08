@@ -1,0 +1,14 @@
+{
+  "name": "@warbird/data",
+  "version": "0.17.0",
+  "main": "dist/index.js",
+  "types": "src/index.ts",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "knex": "^0.19.4",
+    "pg": "^7.12.1"
+  }
+}

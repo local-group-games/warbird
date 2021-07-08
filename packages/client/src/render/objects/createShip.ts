@@ -1,4 +1,4 @@
-import { Ship, Body, Entity } from "@warbird/core";
+import { Ship, Physical, Entity } from "@warbird/core";
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { interpolateEntity } from "../helpers/interpolateEntity";
 import { RenderObject } from "../../types";
@@ -14,7 +14,7 @@ export async function createShip(ship: Ship): Promise<RenderObject> {
   const { Matrix4 } = await import("three");
   const gltf = await loadResource("/assets/models/ship/scene.gltf");
   const { scene: model } = gltf;
-  const body = Entity.getComponent(ship, Body);
+  const body = Entity.getComponent(ship, Physical);
 
   model.position.x = body.x;
   model.position.y = body.y;

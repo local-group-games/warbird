@@ -1,4 +1,4 @@
-import { Body, Entity, Wreck } from "@warbird/core";
+import { Physical, Entity, Wreck } from "@warbird/core";
 import { RenderObject } from "../../types";
 
 const ROTATION_PER_MS = 0.0005;
@@ -7,7 +7,7 @@ export async function createWreck(wreck: Wreck): Promise<RenderObject> {
   const { Mesh, MeshStandardMaterial, OctahedronGeometry } = await import(
     "three"
   );
-  const body = Entity.getComponent(wreck, Body);
+  const body = Entity.getComponent(wreck, Physical);
   const geometry = new OctahedronGeometry(body.width / 2, 0);
   const material = new MeshStandardMaterial({
     color: 0xefdd22,

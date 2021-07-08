@@ -1,7 +1,7 @@
 import { Entity } from "@warbird/ecs";
 import { CollisionGroup } from "../CollisionGroup";
 import { Destructible } from "../components";
-import { Body } from "../components/Body";
+import { Physical } from "../components/Physical";
 import { Expireable } from "../components/Expireable";
 import { EntityType } from "../EntityType";
 
@@ -11,7 +11,7 @@ export class Tile extends Entity {
   constructor() {
     super();
 
-    const body = new Body();
+    const body = new Physical();
     const destructible = new Destructible();
     const expireable = new Expireable();
 

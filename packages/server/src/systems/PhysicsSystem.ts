@@ -1,8 +1,8 @@
-import { Body } from "@warbird/core";
+import { Physical } from "@warbird/core";
 import { Entity, Query, QueryResult, System } from "@warbird/ecs";
-import { AABB, Body as P2Body, Box, World as P2World } from "p2";
+import { AABB, Body, Box, World as P2World } from "p2";
 
-export type CollisionHandler = (a: Body, b: Body) => void;
+export type CollisionHandler = (a: Physical, b: Physical) => void;
 
 export type PhysicsSystemOptions = {};
 
@@ -11,13 +11,13 @@ const trunc2 = (x: number) => Math.floor(x * 100) / 100;
 const CONTACT_PAIR: any[] = [];
 
 function getContactPair(
-  e: { bodyA: P2Body; bodyB: P2Body },
-  entityIdsByP2Body: Map<P2Body, string>,
+  e: { bodyA: Body; bodyB: Body },
+  entityIdsByBody: Map<Body, string>,
   out: string[] = CONTACT_PAIR,
 ) {
   const { bodyA, bodyB } = e;
-  const idA = entityIdsByP2Body.get(bodyA);
-  const idB = entityIdsByP2Body.get(bodyB);
+  const idA = entityIdsByBody.get(bodyA);
+  const idB = entityIdsByBody.get(bodyB);
 
   if (!(idA && idB)) {
     throw new Error(
@@ -33,18 +33,20 @@ function getContactPair(
   return out;
 }
 
-export function syncP2BodyToEntity(body: P2Body, state: Body) {
-  state.angularVelocity = trunc2(body.angularVelocity);
-  state.angle = trunc2(body.angle);
-  state.x = trunc2(body.position[0]);
-  state.y = trunc2(body.position[1]);
-  state.mass = trunc2(body.mass);
-  state.velocityX = trunc2(body.velocity[0]);
-  state.velocityY = trunc2(body.velocity[1]);
+export function syncBodyToEntity(body: Body, physical: Physical) {
+  physical.angularVelocity = body.angularVelocity;
+  physical.mass = body.mass;
+  physical.velocityX = body.velocity[0];
+  physical.velocityY = body.velocity[1];
+
+  // Truncate networked floats to 2 decimals
+  physical.angle = trunc2(body.angle);
+  physical.x = trunc2(body.position[0]);
+  physical.y = trunc2(body.position[1]);
 }
 
-export function buildP2BodyFromEntity(entity: Entity) {
-  const body = entity.getComponent(Body);
+export function buildBodyFromEntity(entity: Entity) {
+  const physical = entity.getComponent(Physical);
   const {
     x,
     y,
@@ -59,38 +61,38 @@ export function buildP2BodyFromEntity(entity: Entity) {
     angularDamping,
     damping,
     sensor,
-  } = body;
+  } = physical;
   const shape = new Box({ width, height });
 
   shape.collisionGroup = collisionGroup;
   shape.collisionMask = collisionMask;
   shape.sensor = sensor;
 
-  const p2Body = new P2Body({
+  const body = new Body({
     position: [x, y],
     mass,
     velocity: [velocityX, velocityY],
     fixedRotation,
   });
-  p2Body.angularDamping = angularDamping;
-  p2Body.damping = damping;
-  p2Body.addShape(shape);
+  body.angularDamping = angularDamping;
+  body.damping = damping;
+  body.addShape(shape);
 
-  return p2Body;
+  return body;
 }
 
 export type PhysicsQuery = {
-  entities: Body;
+  entities: Physical;
 };
 
 export class PhysicsSystem extends System<PhysicsQuery> {
   static FORCE = [0, 0] as [number, number];
 
   private p2World: P2World;
-  private p2BodiesByEntityId = new Map<string, P2Body>();
-  private entityIdsByP2Body = new Map<P2Body, string>();
+  private bodiesByEntityId = new Map<string, Body>();
+  private entityIdsByBody = new Map<Body, string>();
 
-  query = { entities: [Body] };
+  query = { entities: [Physical] };
 
   constructor(options: PhysicsSystemOptions = {}) {
     super();
@@ -105,23 +107,23 @@ export class PhysicsSystem extends System<PhysicsQuery> {
     this.p2World.on("endContact", this.onEndContact, null);
   }
 
-  private onBeginContact = (e: { bodyA: P2Body; bodyB: P2Body }) => {
-    const [entityIdA, entityIdB] = getContactPair(e, this.entityIdsByP2Body);
+  private onBeginContact = (e: { bodyA: Body; bodyB: Body }) => {
+    const [entityIdA, entityIdB] = getContactPair(e, this.entityIdsByBody);
     const entityA = this.world.getEntityById(entityIdA);
     const entityB = this.world.getEntityById(entityIdB);
-    const bodyA = entityA.getComponent(Body);
-    const bodyB = entityB.getComponent(Body);
+    const physicalA = entityA.getComponent(Physical);
+    const physicalB = entityB.getComponent(Physical);
 
-    bodyA.collisions.add(entityB);
-    bodyB.collisions.add(entityA);
+    physicalA.collisions.add(entityB);
+    physicalB.collisions.add(entityA);
   };
 
-  private onEndContact = (e: { bodyA: P2Body; bodyB: P2Body }) => {
+  private onEndContact = (e: { bodyA: Body; bodyB: Body }) => {
     let entityIdA: string;
     let entityIdB: string;
 
     try {
-      [entityIdA, entityIdB] = getContactPair(e, this.entityIdsByP2Body);
+      [entityIdA, entityIdB] = getContactPair(e, this.entityIdsByBody);
     } catch (e) {
       console.warn(`Entity removed during onBeginContact handler.`);
       return;
@@ -129,11 +131,11 @@ export class PhysicsSystem extends System<PhysicsQuery> {
 
     const entityA = this.world.getEntityById(entityIdA);
     const entityB = this.world.getEntityById(entityIdB);
-    const bodyA = entityA.getComponent(Body);
-    const bodyB = entityB.getComponent(Body);
+    const physicalA = entityA.getComponent(Physical);
+    const physicalB = entityB.getComponent(Physical);
 
-    bodyA.collisions.delete(entityB);
-    bodyB.collisions.delete(entityA);
+    physicalA.collisions.delete(entityB);
+    physicalB.collisions.delete(entityA);
   };
 
   aabbQuery(x1: number, y1: number, x2: number, y2: number) {
@@ -144,7 +146,7 @@ export class PhysicsSystem extends System<PhysicsQuery> {
     const result = this.p2World.broadphase.aabbQuery(this.p2World, aabb);
 
     return result.map(body => {
-      const entity = this.entityIdsByP2Body.get(body);
+      const entity = this.entityIdsByBody.get(body);
 
       if (!entity) {
         throw new Error(`Could not resolve schema when querying.`);
@@ -155,23 +157,23 @@ export class PhysicsSystem extends System<PhysicsQuery> {
   }
 
   rotateBody(entity: Entity, delta: number) {
-    const p2Body = this.p2BodiesByEntityId.get(entity.id);
+    const body = this.bodiesByEntityId.get(entity.id);
 
-    if (p2Body) {
-      p2Body.angle += delta;
-      p2Body.angularVelocity = 0;
+    if (body) {
+      body.angle += delta;
+      body.angularVelocity = 0;
     }
   }
 
   applyForceToBody(entity: Entity, x: number, y: number) {
-    const p2Body = this.p2BodiesByEntityId.get(entity.id);
+    const body = this.bodiesByEntityId.get(entity.id);
 
-    if (p2Body) {
+    if (body) {
       PhysicsSystem.FORCE[0] = x;
       PhysicsSystem.FORCE[1] = y;
 
-      p2Body.wakeUp();
-      p2Body.applyForceLocal(PhysicsSystem.FORCE);
+      body.wakeUp();
+      body.applyForceLocal(PhysicsSystem.FORCE);
     }
   }
 
@@ -180,22 +182,22 @@ export class PhysicsSystem extends System<PhysicsQuery> {
     const deltaTimeS = this.world.clock.deltaTime / 1000;
 
     for (const entity of this.world.changes.removed) {
-      const body = entity.tryGetComponent(Body);
+      const physical = entity.tryGetComponent(Physical);
 
-      if (body) {
-        for (const collision of body.collisions) {
-          const collisionBody = collision.getComponent(Body);
+      if (physical) {
+        for (const collision of physical.collisions) {
+          const collisionBody = collision.getComponent(Physical);
 
           collisionBody.collisions.delete(entity);
         }
 
-        const p2Body = this.p2BodiesByEntityId.get(entity.id);
+        const body = this.bodiesByEntityId.get(entity.id);
 
-        this.p2BodiesByEntityId.delete(entity.id);
+        this.bodiesByEntityId.delete(entity.id);
 
-        if (p2Body) {
-          this.p2World.removeBody(p2Body);
-          this.entityIdsByP2Body.delete(p2Body);
+        if (body) {
+          this.p2World.removeBody(body);
+          this.entityIdsByBody.delete(body);
         } else {
           console.warn(`Schema removed without body.`);
         }
@@ -206,22 +208,22 @@ export class PhysicsSystem extends System<PhysicsQuery> {
       const entity = entities[i];
 
       if (this.world.changes.added.has(entity)) {
-        const p2Body = buildP2BodyFromEntity(entity);
+        const body = buildBodyFromEntity(entity);
 
-        this.p2World.addBody(p2Body);
-        this.p2BodiesByEntityId.set(entity.id, p2Body);
-        this.entityIdsByP2Body.set(p2Body, entity.id);
+        this.p2World.addBody(body);
+        this.bodiesByEntityId.set(entity.id, body);
+        this.entityIdsByBody.set(body, entity.id);
       }
     }
 
     this.p2World.step(1 / 60, deltaTimeS, 10);
 
-    this.p2BodiesByEntityId.forEach((p2Body, entityId) => {
+    this.bodiesByEntityId.forEach((body, entityId) => {
       const entity = this.world.getEntityById(entityId);
-      const body = entity.getComponent(Body);
+      const physical = entity.getComponent(Physical);
 
-      if (body) {
-        syncP2BodyToEntity(p2Body, body);
+      if (physical) {
+        syncBodyToEntity(body, physical);
       }
     });
   }

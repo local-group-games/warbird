@@ -2,7 +2,7 @@ import { type } from "@colyseus/schema";
 import { Component, Entity } from "@warbird/ecs";
 import { ComponentType } from "../ComponentType";
 
-export class Body extends Component {
+export class Physical extends Component {
   getType() {
     return ComponentType.Body;
   }
